@@ -20,12 +20,8 @@ body, html {
 }
 
 #map {
-  position: absolute;
-  top: 0;
-  left: 300px;
-  width: calc(100% - 300px);
   height: 100vh;
-  z-index: 1;
+  margin-left: 300px;
 }
 
 #logo-container {
@@ -35,10 +31,7 @@ body, html {
 }
 
 #fbm-logo {
-  max-width: 180px;
-  max-height: 100px;
-  width: auto;
-  height: auto;
+  width: 180px; /* 1.5x increase */
   border: 2px solid green;
   border-radius: 8px;
 }
@@ -96,36 +89,4 @@ body, html {
   margin-top: 16px;
   font-size: 13px;
   color: #666;
-}
-
-/* Custom Marker Styles */
-.marker-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Oswald', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  border: 3px solid;
-  box-shadow: 0 0 2px rgba(0,0,0,0.3);
-  line-height: 1;
-}
-
-.week-1 {
-  border-color: #e75480;
-  color: #e75480;
-}
-
-.week-2 {
-  border-color: #002366;
-  color: #002366;
-}
-
-.week-3 {
-  border-color: #800080;
-  color: #800080;
 }
