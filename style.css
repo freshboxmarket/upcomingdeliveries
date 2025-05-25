@@ -14,15 +14,29 @@ body, html {
   position: relative;
   border-bottom: 2px solid #ccc;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 60px;
   text-align: center;
 }
 
-#legend {
-  min-width: 280px;
+#logo-container {
+  width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#fbm-logo {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 12px;
 }
 
-#legend h3 {
+#legend, #csv-toggle-box {
+  min-width: 260px;
+}
+
+#legend h3, #csv-toggle-box h3 {
   margin: 0 0 12px 0;
   font-size: 18px;
   color: #333;
@@ -51,11 +65,28 @@ body, html {
 .red { background-color: red; }
 .blue { background-color: blue; }
 .gold { background-color: gold; }
-.pink { background-color: #e75480; }
-.darkblue { background-color: #002366; }
-.purple { background-color: purple; }
 
 #map {
   height: 90vh;
   width: 100%;
+}
+
+#csv-controls > div {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.csv-header {
+  font-weight: 600;
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+
+#last-updated {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
 }
