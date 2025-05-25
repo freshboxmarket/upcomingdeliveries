@@ -13,7 +13,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// CSV layer definitions
+// CSV delivery layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -50,7 +50,6 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = true;
-  checkbox.style.marginLeft = '12px';
 
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
