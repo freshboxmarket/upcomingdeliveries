@@ -1,6 +1,5 @@
 const map = L.map('map');
 
-// Tile layer
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
@@ -17,7 +16,7 @@ map.whenReady(() => {
     });
 });
 
-// Static Delivery Zones
+// Static Zones
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
@@ -43,7 +42,7 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
     });
 });
 
-// CSV Delivery Layers
+// CSV Layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -66,7 +65,6 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const groupLayer = L.layerGroup().addTo(map);
   const bufferLayer = L.layerGroup().addTo(map);
 
-  // UI Toggle
   const wrapper = document.createElement('div');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -87,7 +85,6 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   wrapper.appendChild(label);
   csvControl.appendChild(wrapper);
 
-  // Load CSV + create layers
   Papa.parse(url, {
     download: true,
     header: true,
@@ -116,7 +113,6 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         }
       });
 
-      // Add to left-hand legend (with count)
       const legendEntry = document.createElement('div');
       legendEntry.className = 'legend-entry';
       legendEntry.innerHTML = `<span class="color" style="background:${color};"></span><span>${name}</span><span><strong>${count}</strong></span>`;
@@ -148,3 +144,8 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     logo.style.cursor = "grab";
   });
 })();
+
+// Sidebar toggle
+document.getElementById("toggle-legend").addEventListener("click", () => {
+  document.getElementById("legend").classList.toggle("collapsed");
+});
