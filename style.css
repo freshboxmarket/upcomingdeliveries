@@ -31,12 +31,10 @@ body, html {
 }
 
 #fbm-logo {
-  width: 200px; /* slightly larger than 1.5x */
-  max-width: 90%;
+  width: 180px; /* 1.5x increase */
   border: 2px solid green;
   border-radius: 8px;
 }
-
 
 #legend h3 {
   margin-top: 20px;
