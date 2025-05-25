@@ -4,7 +4,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Center on zones.geojson
+// Fit map to zones.geojson bounds
 fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
   .then(res => res.json())
   .then(data => {
@@ -14,7 +14,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// Zone layer colors
+// Delivery zone overlays
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
@@ -33,7 +33,7 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
     });
 });
 
-// CSV layers
+// CSV layers with toggle
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -91,7 +91,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     complete: function(results) {
       let count = 0;
 
-      results.data.forEach((row, i) => {
+      results.data.forEach((row) => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
         const fundraiser = row.FundraiserName || "Unknown";
@@ -100,14 +100,16 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
 
+          // Hollow white-filled marker with colored border
           L.circleMarker([lat, lon], {
             radius: 10,
-            color: color,             // outline color
-            weight: 3,                // border thickness
-            fillColor: "#ffffff",     // white center
-            fillOpacity: 1            // solid white fill
+            color: color,
+            weight: 3,
+            fillColor: "#ffffff",
+            fillOpacity: 1
           }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
 
+          // Buffer
           const buffered = turf.buffer(turf.point([lon, lat]), 0.05, { units: 'kilometers' });
           L.geoJSON(buffered, {
             style: { color, weight: 1, fillOpacity: 0.2 }
@@ -118,4 +120,10 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
       label.textContent = `${name} – ${count} deliveries`;
     }
   });
+});
+
+// Sidebar toggle logic
+document.getElementById('sidebar-toggle').addEventListener('click', () => {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('closed');
 });
