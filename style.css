@@ -4,20 +4,45 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f9f9f9;
+}
+
+#map {
+  position: absolute;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  z-index: 0;
 }
 
 #legend {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   bottom: 0;
-  width: 180px;
+  width: 200px;
   background-color: #e2f4dc;
   padding: 12px;
   overflow-y: auto;
   border-right: 2px solid #bbb;
   z-index: 1100;
+  transition: transform 0.3s ease-in-out;
+}
+
+#legend.collapsed {
+  transform: translateX(-100%);
+}
+
+#toggle-legend {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1201;
+  background-color: green;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 #legend h3 {
@@ -59,8 +84,16 @@ body, html {
 }
 
 #csv-toggle-box {
-  margin-left: 200px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #fff;
+  border-left: 2px solid #ccc;
   padding: 10px;
+  z-index: 1100;
+  max-width: 220px;
+  height: auto;
+  overflow-y: auto;
 }
 
 #csv-toggle-box h3 {
@@ -84,16 +117,11 @@ body, html {
   font-size: 14px;
 }
 
-#map {
-  height: 100vh;
-  width: 100%;
-}
-
 /* Floating Logo */
 #floating-logo {
   position: absolute;
   top: 16px;
-  left: 200px;
+  left: 220px;
   width: 80px;
   border: 3px solid green;
   border-radius: 6px;
@@ -102,4 +130,11 @@ body, html {
   background-color: white;
   box-shadow: 0 0 6px rgba(0, 128, 0, 0.3);
   user-select: none;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  #csv-toggle-box {
+    display: none;
+  }
 }
