@@ -1,30 +1,23 @@
 const map = L.map('map');
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; CartoDB'
-}).addTo(map);
+// Centering map around zones.geojson
+fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
+  .then(res => res.json())
+  .then(data => {
+    const zonesLayer = L.geoJSON(data, {
+      style: { color: "#666", weight: 1, fillOpacity: 0.05 }
+    }).addTo(map);
+    map.fitBounds(zonesLayer.getBounds());
+  })
+  .catch(err => console.error("Error loading zones.geojson:", err));
 
-// Center map using zones.geojson
-map.whenReady(() => {
-  fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
-    .then(res => res.json())
-    .then(data => {
-      const zonesLayer = L.geoJSON(data, {
-        style: { color: "#888", weight: 1, fillOpacity: 0.1 }
-      }).addTo(map);
-      setTimeout(() => map.fitBounds(zonesLayer.getBounds()), 100);
-    });
-});
-
-// Static Zones
+// Delivery Zone Layers (Wed–Sat)
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
   "Friday":    { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "blue" },
   "Saturday":  { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "gold" }
 };
-
-const zoneLegend = document.getElementById('zone-legend');
 
 Object.entries(geoLayers).forEach(([name, { url, color }]) => {
   fetch(url)
@@ -34,15 +27,11 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
         style: { color, weight: 2, fillOpacity: 0.15 },
         onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
       }).addTo(map);
-
-      const entry = document.createElement('div');
-      entry.className = 'legend-entry';
-      entry.innerHTML = `<span class="color" style="background:${color};"></span><span>${name}</span>`;
-      zoneLegend.appendChild(entry);
-    });
+    })
+    .catch(err => console.error(`Error loading ${name} zone`, err));
 });
 
-// CSV Layers
+// CSV Delivery Points
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -58,39 +47,14 @@ const csvSources = {
   }
 };
 
-const csvControl = document.getElementById('csv-controls');
-const csvLegend = document.getElementById('csv-legend');
-
 Object.entries(csvSources).forEach(([name, { url, color }]) => {
-  const groupLayer = L.layerGroup().addTo(map);
+  const deliveryLayer = L.layerGroup().addTo(map);
   const bufferLayer = L.layerGroup().addTo(map);
-
-  const wrapper = document.createElement('div');
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.checked = true;
-  checkbox.style.marginRight = "6px";
-
-  const label = document.createElement('label');
-  label.className = 'csv-header';
-  label.textContent = `${name}`;
-
-  checkbox.addEventListener('change', () => {
-    checkbox.checked
-      ? [groupLayer, bufferLayer].forEach(layer => map.addLayer(layer))
-      : [groupLayer, bufferLayer].forEach(layer => map.removeLayer(layer));
-  });
-
-  wrapper.appendChild(checkbox);
-  wrapper.appendChild(label);
-  csvControl.appendChild(wrapper);
 
   Papa.parse(url, {
     download: true,
     header: true,
     complete: function(results) {
-      let count = 0;
-
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
@@ -98,54 +62,27 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         const id = row["id:"] || "N/A";
 
         if (!isNaN(lat) && !isNaN(lon)) {
-          count++;
-
-          L.circleMarker([lat, lon], {
+          // Point marker
+          const marker = L.circleMarker([lat, lon], {
             radius: 5,
             color,
             fillOpacity: 0.8
-          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
+          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`);
+          marker.addTo(deliveryLayer);
 
-          const buffer = turf.buffer(turf.point([lon, lat]), 0.1, { units: 'kilometers' });
-          L.geoJSON(buffer, {
-            style: { color, weight: 1, fillOpacity: 0.2 }
+          // Buffer around marker
+          const point = turf.point([lon, lat]);
+          const buffered = turf.buffer(point, 0.1, { units: 'kilometers' });
+
+          L.geoJSON(buffered, {
+            style: {
+              color,
+              weight: 1,
+              fillOpacity: 0.2
+            }
           }).addTo(bufferLayer);
         }
       });
-
-      const legendEntry = document.createElement('div');
-      legendEntry.className = 'legend-entry';
-      legendEntry.innerHTML = `<span class="color" style="background:${color};"></span><span>${name}</span><span><strong>${count}</strong></span>`;
-      csvLegend.appendChild(legendEntry);
     }
   });
-});
-
-// Floating Logo Drag
-(function enableLogoDrag() {
-  const logo = document.getElementById("floating-logo");
-  let isDragging = false, startX, startY;
-
-  logo.addEventListener('mousedown', e => {
-    isDragging = true;
-    startX = e.clientX - logo.offsetLeft;
-    startY = e.clientY - logo.offsetTop;
-    logo.style.cursor = "grabbing";
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    logo.style.left = `${e.clientX - startX}px`;
-    logo.style.top = `${e.clientY - startY}px`;
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    logo.style.cursor = "grab";
-  });
-})();
-
-// Sidebar toggle
-document.getElementById("toggle-legend").addEventListener("click", () => {
-  document.getElementById("legend").classList.toggle("collapsed");
 });
