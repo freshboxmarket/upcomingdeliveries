@@ -57,7 +57,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
-        const id = (row["id:"] || "").trim();
+        const id = (row["id"] || "").trim(); // ✅ no colon
         const fundraiser = row.FundraiserName || "Unknown";
 
         if (!isNaN(lat) && !isNaN(lon)) {
@@ -114,7 +114,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   });
 });
 
-// Resizing logic
+// Sidebar resizing logic
 const sidebar = document.getElementById('sidebar');
 const mapEl = document.getElementById('map');
 const handle = document.getElementById('resize-handle');
