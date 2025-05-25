@@ -1,4 +1,97 @@
-/* Marker Number Style — FIXED AND CENTERED */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+#sidebar {
+  width: 300px;
+  background-color: #e4f5e4;
+  padding: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+#map {
+  height: 100vh;
+  margin-left: 300px;
+}
+
+#logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+#fbm-logo {
+  width: 180px;
+  border: 2px solid green;
+  border-radius: 8px;
+}
+
+#legend h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 4px;
+  color: #333;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+#csv-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.csv-toggle-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 2px solid;
+  color: inherit;
+  background: #fff;
+}
+
+.csv-toggle-entry input[type="checkbox"] {
+  transform: scale(1.2);
+  accent-color: currentColor;
+}
+
+#last-updated {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Custom Markers */
 .marker-icon {
   width: 36px;
   height: 36px;
