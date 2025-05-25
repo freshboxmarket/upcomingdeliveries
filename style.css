@@ -72,3 +72,18 @@ body, html {
   margin-bottom: 5px;
   font-size: 15px;
 }
+
+/* Logo image styling */
+#floating-logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: 70px;
+  border: 3px solid green;
+  border-radius: 6px;
+  z-index: 1200;
+  cursor: move;
+  background-color: white;
+  box-shadow: 0 0 6px rgba(0, 128, 0, 0.3);
+  user-select: none;
+}
