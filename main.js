@@ -5,12 +5,12 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Delivery zones (non-toggleable)
+// Delivery zones — always visible
 const geoLayers = {
-  "Wed Group": { url: "https://klabbyklab.github.io/maplayers/wed_group.geojson", color: "green" },
-  "Thurs Group": { url: "https://klabbyklab.github.io/maplayers/thurs_group.geojson", color: "red" },
-  "Fri Group": { url: "https://klabbyklab.github.io/maplayers/fri_group.geojson", color: "blue" },
-  "Sat Group": { url: "https://klabbyklab.github.io/maplayers/sat_group.geojson", color: "gold" }
+  "Wed Group": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
+  "Thurs Group": { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
+  "Fri Group": { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "blue" },
+  "Sat Group": { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "gold" }
 };
 
 Object.entries(geoLayers).forEach(([name, { url, color }]) => {
@@ -24,7 +24,7 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
     });
 });
 
-// CSV layers
+// Upcoming deliveries (CSV)
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -65,7 +65,6 @@ Object.entries(csvSources).forEach(([name, { url, defaultColor }]) => {
     checkbox.checked ? groupLayer.addTo(map) : map.removeLayer(groupLayer);
   });
 
-  // Color buttons
   ["purple", "red", "green", "black"].forEach(color => {
     const btn = document.createElement('button');
     btn.textContent = color;
@@ -78,7 +77,6 @@ Object.entries(csvSources).forEach(([name, { url, defaultColor }]) => {
     tools.appendChild(btn);
   });
 
-  // Count button
   const countBtn = document.createElement('button');
   countBtn.textContent = "Count";
   countBtn.addEventListener('click', () => {
@@ -86,7 +84,6 @@ Object.entries(csvSources).forEach(([name, { url, defaultColor }]) => {
   });
   tools.appendChild(countBtn);
 
-  // Highlight button
   const highlightBtn = document.createElement('button');
   highlightBtn.textContent = "Highlight";
   highlightBtn.addEventListener('click', () => {
@@ -99,7 +96,7 @@ Object.entries(csvSources).forEach(([name, { url, defaultColor }]) => {
   wrapper.appendChild(tools);
   csvControl.appendChild(wrapper);
 
-  // Parse CSV
+  // Parse CSV data
   Papa.parse(url, {
     download: true,
     header: true,
