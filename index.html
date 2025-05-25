@@ -8,19 +8,21 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="sidebar">
+  <button id="sidebar-toggle">☰</button>
+
+  <div id="sidebar" class="open">
     <div id="logo-container">
       <img src="https://freshboxmarket.github.io/maplayers/Logo_fbm.jpg" alt="FBM Logo" id="fbm-logo">
     </div>
 
     <div id="legend">
       <h3>Delivery Zones</h3>
-      <div class="legend-item"><span class="color-swatch" style="background-color:#008000;"></span>Wednesday</div>
-      <div class="legend-item"><span class="color-swatch" style="background-color:#FF0000;"></span>Thursday</div>
-      <div class="legend-item"><span class="color-swatch" style="background-color:#0000FF;"></span>Friday</div>
-      <div class="legend-item"><span class="color-swatch" style="background-color:#FFD700;"></span>Saturday</div>
+      <div class="legend-item"><span class="color-swatch" style="background-color:#008000;"></span>Wed</div>
+      <div class="legend-item"><span class="color-swatch" style="background-color:#FF0000;"></span>Thu</div>
+      <div class="legend-item"><span class="color-swatch" style="background-color:#0000FF;"></span>Fri</div>
+      <div class="legend-item"><span class="color-swatch" style="background-color:#FFD700;"></span>Sat</div>
 
-      <h3>Upcoming Deliveries</h3>
+      <h3>Upcoming</h3>
       <div id="csv-legend"></div>
       <div id="last-updated">Last updated: …</div>
     </div>
