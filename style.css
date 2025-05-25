@@ -31,7 +31,7 @@ body, html {
 }
 
 #fbm-logo {
-  width: 180px; /* 1.5x increase */
+  width: 250px; /* 1.5x increase */
   border: 2px solid green;
   border-radius: 8px;
 }
