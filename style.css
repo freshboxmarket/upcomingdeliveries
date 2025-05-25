@@ -63,8 +63,10 @@ body, html {
 
 #fbm-logo {
   max-width: 100%;
-  width: 80%;
+  width: 100%;
   height: auto;
+  max-height: 120px;
+  object-fit: contain;
   border: 2px solid green;
   border-radius: 8px;
 }
