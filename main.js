@@ -4,7 +4,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Center on zones.geojson
+// Fit to zones.geojson
 fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
   .then(res => res.json())
   .then(data => {
@@ -14,7 +14,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// Zone overlays
+// Static delivery zone overlays
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
@@ -33,7 +33,7 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
     });
 });
 
-// CSV layers with numbered markers
+// CSV delivery layers with numbered divIcons
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -103,12 +103,12 @@ Object.entries(csvSources).forEach(([name, { url, color, weekNum }]) => {
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
 
-          const markerIcon = L.divIcon({
+          const icon = L.divIcon({
             className: `marker-icon week-${weekNum}`,
             html: `${weekNum}`
           });
 
-          L.marker([lat, lon], { icon: markerIcon })
+          L.marker([lat, lon], { icon })
             .bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`)
             .addTo(groupLayer);
 
