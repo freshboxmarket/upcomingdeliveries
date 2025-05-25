@@ -34,7 +34,7 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
 const csvSources = {
   "3 Weeks Out": { url: "https://...", color: "#800080" },
   "2 Weeks Out": { url: "https://...", color: "#002366" },
-  "1 Week Out": { url: "https://...", color: "#e75480" }
+  "1 Week Out":  { url: "https://...", color: "#e75480" }
 };
 
 const csvLegend = document.getElementById('csv-legend');
@@ -47,8 +47,8 @@ lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} @ ${now.toL
 const uniqueIDs = new Set();
 
 Object.entries(csvSources).forEach(([name, { url, color }]) => {
-  const groupLayer = L.layerGroup().addTo(map);
-  const bufferLayer = L.layerGroup().addTo(map);
+  const groupLayer = L.layerGroup();
+  const bufferLayer = L.layerGroup();
 
   const wrapper = document.createElement('div');
   wrapper.className = 'csv-toggle-entry';
@@ -60,11 +60,12 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
 
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
-  checkbox.checked = true;
+  checkbox.checked = (name === "1 Week Out");
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
       map.addLayer(groupLayer);
       map.addLayer(bufferLayer);
+      groupLayer.eachLayer(marker => marker.setStyle({ fillColor: '#ffffff' }).getElement().classList.add('active-marker'));
     } else {
       map.removeLayer(groupLayer);
       map.removeLayer(bufferLayer);
@@ -80,7 +81,6 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     header: true,
     complete: function(results) {
       let count = 0;
-
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
@@ -91,13 +91,19 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
           count++;
           if (id) uniqueIDs.add(id);
 
-          L.circleMarker([lat, lon], {
+          const marker = L.circleMarker([lat, lon], {
             radius: 10,
             color: color,
             weight: 3,
             fillColor: "#ffffff",
             fillOpacity: 1
-          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
+          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`);
+
+          if (checkbox.checked) {
+            marker.options.className = 'active-marker';
+          }
+
+          marker.addTo(groupLayer);
 
           const buffered = turf.buffer(turf.point([lon, lat]), 0.05, { units: 'kilometers' });
           L.geoJSON(buffered, {
@@ -108,18 +114,23 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
 
       label.textContent = `${name} – ${count} deliveries`;
       totalUnique.textContent = `Total unique customers: ${uniqueIDs.size}`;
+
+      if (checkbox.checked) {
+        map.addLayer(groupLayer);
+        map.addLayer(bufferLayer);
+      }
     }
   });
 });
 
-// Resize sidebar functionality
+// Resizing logic
 const sidebar = document.getElementById('sidebar');
 const mapEl = document.getElementById('map');
 const handle = document.getElementById('resize-handle');
 
 let isResizing = false;
 
-handle.addEventListener('mousedown', e => {
+handle.addEventListener('mousedown', () => {
   isResizing = true;
   document.body.style.cursor = 'ew-resize';
 });
