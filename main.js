@@ -102,8 +102,10 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
 
           L.circleMarker([lat, lon], {
             radius: 10,
-            color,
-            fillOpacity: 0.8
+            color: color,             // outline color
+            weight: 3,                // border thickness
+            fillColor: "#ffffff",     // white center
+            fillOpacity: 1            // solid white fill
           }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
 
           const buffered = turf.buffer(turf.point([lon, lat]), 0.05, { units: 'kilometers' });
