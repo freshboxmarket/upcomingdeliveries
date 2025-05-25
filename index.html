@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery Zone Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="controls">
+    <div id="legend">
+      <h3>Delivery Zones</h3>
+      <div class="legend-item"><span class="color-swatch green"></span>Wednesday</div>
+      <div class="legend-item"><span class="color-swatch red"></span>Thursday</div>
+      <div class="legend-item"><span class="color-swatch blue"></span>Friday</div>
+      <div class="legend-item"><span class="color-swatch gold"></span>Saturday</div>
+    </div>
+
+    <div id="csv-toggle-box">
+      <h3>Upcoming Deliveries</h3>
+      <div id="csv-controls"></div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
