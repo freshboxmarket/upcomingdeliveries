@@ -6,10 +6,24 @@ body, html {
   font-family: 'Segoe UI', sans-serif;
 }
 
+#sidebar-toggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1100;
+  font-size: 20px;
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  display: none;
+}
+
+/* Condensed sidebar */
 #sidebar {
-  width: 300px;
+  width: 160px;
   background-color: #e4f5e4;
-  padding: 20px;
+  padding: 12px;
   position: absolute;
   top: 0;
   left: 0;
@@ -17,46 +31,56 @@ body, html {
   overflow-y: auto;
   height: 100vh;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+#sidebar.closed {
+  transform: translateX(-100%);
 }
 
 #map {
   height: 100vh;
-  margin-left: 300px;
+  margin-left: 160px;
+  transition: margin-left 0.3s ease;
+}
+
+#sidebar.closed ~ #map {
+  margin-left: 0;
 }
 
 #logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 #fbm-logo {
-  width: 250px; /* 1.5x increase */
+  width: 120px;
+  max-width: 100%;
   border: 2px solid green;
   border-radius: 8px;
 }
 
 #legend h3 {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  font-size: 18px;
+  margin: 16px 0 6px;
+  font-size: 15px;
   border-bottom: 2px solid #ccc;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
   color: #333;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 6px 0;
-  font-size: 15px;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 13px;
 }
 
 .color-swatch {
   display: inline-block;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border: 1px solid #333;
   border-radius: 3px;
 }
@@ -65,15 +89,15 @@ body, html {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .csv-toggle-entry {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
-  font-size: 15px;
+  padding: 5px 8px;
+  font-size: 13px;
   border-radius: 6px;
   border: 2px solid;
   color: inherit;
@@ -86,7 +110,27 @@ body, html {
 }
 
 #last-updated {
-  margin-top: 16px;
-  font-size: 13px;
+  margin-top: 12px;
+  font-size: 12px;
   color: #666;
+}
+
+/* Show toggle on mobile */
+@media (max-width: 767px) {
+  #sidebar-toggle {
+    display: block;
+  }
+
+  #sidebar {
+    transform: translateX(-100%);
+    width: 80%;
+  }
+
+  #sidebar.open {
+    transform: translateX(0);
+  }
+
+  #map {
+    margin-left: 0 !important;
+  }
 }
