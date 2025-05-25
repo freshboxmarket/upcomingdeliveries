@@ -13,28 +13,10 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-const geoLayers = {
-  "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
-  "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
-  "Friday":    { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF" },
-  "Saturday":  { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700" }
-};
-
-Object.entries(geoLayers).forEach(([name, { url, color }]) => {
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, {
-        style: { color, weight: 2, fillOpacity: 0.15 },
-        onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
-      }).addTo(map);
-    });
-});
-
 const csvSources = {
-  "3 Weeks Out": { url: "https://...", color: "#800080" },
-  "2 Weeks Out": { url: "https://...", color: "#002366" },
-  "1 Week Out":  { url: "https://...", color: "#e75480" }
+  "3 Weeks Out": { url: "https://freshboxmarket.github.io/maplayers/3weeks.csv", color: "#800080" },
+  "2 Weeks Out": { url: "https://freshboxmarket.github.io/maplayers/2weeks.csv", color: "#002366" },
+  "1 Week Out":  { url: "https://freshboxmarket.github.io/maplayers/1week.csv", color: "#e75480" }
 };
 
 const csvLegend = document.getElementById('csv-legend');
@@ -61,16 +43,6 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = (name === "1 Week Out");
-  checkbox.addEventListener('change', () => {
-    if (checkbox.checked) {
-      map.addLayer(groupLayer);
-      map.addLayer(bufferLayer);
-      groupLayer.eachLayer(marker => marker.setStyle({ fillColor: '#ffffff' }).getElement().classList.add('active-marker'));
-    } else {
-      map.removeLayer(groupLayer);
-      map.removeLayer(bufferLayer);
-    }
-  });
 
   wrapper.appendChild(label);
   wrapper.appendChild(checkbox);
@@ -81,6 +53,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     header: true,
     complete: function(results) {
       let count = 0;
+
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
@@ -99,11 +72,11 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
             fillOpacity: 1
           }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`);
 
-          if (checkbox.checked) {
-            marker.options.className = 'active-marker';
-          }
-
           marker.addTo(groupLayer);
+          marker.on('add', () => {
+            const el = marker.getElement();
+            if (checkbox.checked && el) el.classList.add('active-marker');
+          });
 
           const buffered = turf.buffer(turf.point([lon, lat]), 0.05, { units: 'kilometers' });
           L.geoJSON(buffered, {
@@ -119,6 +92,24 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         map.addLayer(groupLayer);
         map.addLayer(bufferLayer);
       }
+
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          map.addLayer(groupLayer);
+          map.addLayer(bufferLayer);
+          groupLayer.eachLayer(marker => {
+            const el = marker.getElement();
+            if (el) el.classList.add('active-marker');
+          });
+        } else {
+          map.removeLayer(groupLayer);
+          map.removeLayer(bufferLayer);
+        }
+      });
+    },
+    error: function(err) {
+      console.error(`Failed to load ${name} from ${url}`, err);
+      label.textContent = `${name} – Error loading`;
     }
   });
 });
