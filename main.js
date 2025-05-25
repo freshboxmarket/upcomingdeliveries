@@ -1,10 +1,23 @@
-const map = L.map('map').setView([43.7, -79.4], 8);
+const map = L.map('map'); // Leave map center unset initially
 
+// Auto-center from zones.geojson
+fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
+  .then(res => res.json())
+  .then(data => {
+    const zonesLayer = L.geoJSON(data, {
+      style: { color: "#888", weight: 1, fillOpacity: 0.1 }
+    }).addTo(map);
+
+    map.fitBounds(zonesLayer.getBounds());
+  })
+  .catch(err => console.error("Error loading zones.geojson:", err));
+
+// Tile layer
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Delivery Zone Layers
+// Static Delivery Zone Layers
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
@@ -20,11 +33,10 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
         style: { color, weight: 2, fillOpacity: 0.15 },
         onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
       }).addTo(map);
-    })
-    .catch(err => console.error(`Failed to load ${name} zone`, err));
+    });
 });
 
-// CSV Delivery Layers
+// CSV Marker Layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -76,44 +88,33 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     header: true,
     complete: function(results) {
       let count = 0;
-      const buffers = [];
 
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
-        const fundraiser = row.FundraiserName || "Unknown";
+        const name = row.FundraiserName || "Unknown";
         const id = row["id:"] || "N/A";
 
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
 
-          // Main marker
           const marker = L.circleMarker([lat, lon], {
             radius: 5,
             color,
             fillOpacity: 0.8
-          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`);
+          }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`);
           marker.addTo(groupLayer);
 
-          // Buffer (100 meters)
           const point = turf.point([lon, lat]);
           const buffered = turf.buffer(point, 0.1, { units: 'kilometers' });
-
-          const bufferGeo = L.geoJSON(buffered, {
-            style: {
-              color,
-              weight: 1,
-              fillOpacity: 0.2
-            }
-          });
-          bufferGeo.addTo(bufferLayer);
+          L.geoJSON(buffered, {
+            style: { color, weight: 1, fillOpacity: 0.2 }
+          }).addTo(bufferLayer);
         }
       });
 
-      // Update toggle label
       label.textContent = `${name} – ${count} delivery${count !== 1 ? 'ies' : ''}`;
 
-      // Update main legend
       const legendItem = document.createElement('div');
       legendItem.className = 'legend-item';
       legendItem.innerHTML = `<span class="color-swatch" style="background:${color};"></span>${name} – ${count}`;
@@ -121,3 +122,27 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     }
   });
 });
+
+// Logo dragging
+(function enableLogoDrag() {
+  const logo = document.getElementById("floating-logo");
+  let isDragging = false, startX, startY;
+
+  logo.addEventListener('mousedown', e => {
+    isDragging = true;
+    startX = e.clientX - logo.offsetLeft;
+    startY = e.clientY - logo.offsetTop;
+    logo.style.cursor = "grabbing";
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    logo.style.left = `${e.clientX - startX}px`;
+    logo.style.top = `${e.clientY - startY}px`;
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    logo.style.cursor = "grab";
+  });
+})();
