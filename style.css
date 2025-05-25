@@ -4,7 +4,6 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f9f9f9;
 }
 
 #sidebar {
@@ -64,6 +63,22 @@ body, html {
 
 #csv-legend {
   margin-top: 12px;
+}
+
+.csv-toggle-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  border: 2px solid;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.csv-toggle-entry input[type="checkbox"] {
+  transform: scale(1.2);
+  accent-color: currentColor;
 }
 
 #last-updated {
