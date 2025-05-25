@@ -101,7 +101,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
           count++;
 
           L.circleMarker([lat, lon], {
-            radius: 7,
+            radius: 10,
             color,
             fillOpacity: 0.8
           }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
