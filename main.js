@@ -1,11 +1,10 @@
 const map = L.map('map');
 
-// Basemap
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Fit to zones.geojson
+// Center on zones.geojson
 fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
   .then(res => res.json())
   .then(data => {
@@ -15,7 +14,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// Zone overlays
+// Zone layer colors
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
