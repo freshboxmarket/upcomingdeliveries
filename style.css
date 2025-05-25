@@ -4,52 +4,62 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f9f9f9;
 }
 
-#controls {
-  padding: 20px;
-  background-color: white;
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+#sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100%;
+  background-color: #d4f4d1; /* light green */
+  overflow-y: auto;
   z-index: 1000;
-  position: relative;
-  border-bottom: 2px solid #ccc;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 60px;
-  text-align: center;
+  border-right: 2px solid #a4dca0;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  padding: 20px 15px;
 }
 
 #logo-container {
-  width: 120px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  margin-bottom: 10px;
 }
+
 #fbm-logo {
   max-width: 100%;
   height: auto;
-  margin-bottom: 12px;
+  border: 2px solid #4caf50;
+  border-radius: 6px;
 }
 
 #legend, #csv-toggle-box {
-  min-width: 260px;
+  margin-bottom: 20px;
 }
 
 #legend h3, #csv-toggle-box h3 {
-  margin: 0 0 12px 0;
   font-size: 18px;
-  color: #333;
-  border-bottom: 2px solid #ddd;
+  color: #1c4b1c;
+  border-bottom: 2px solid #b2d8b2;
   padding-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  justify-content: center;
   margin-bottom: 6px;
   font-size: 15px;
+  color: #333;
 }
 
 .color-swatch {
@@ -66,27 +76,39 @@ body, html {
 .blue { background-color: blue; }
 .gold { background-color: gold; }
 
-#map {
-  height: 90vh;
-  width: 100%;
-}
-
 #csv-controls > div {
   margin-bottom: 12px;
   padding: 10px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: left;
 }
 
 .csv-header {
   font-weight: 600;
-  margin-bottom: 5px;
   font-size: 15px;
+  color: #222;
 }
 
 #last-updated {
   margin-top: 10px;
   font-size: 13px;
-  color: #666;
+  color: #444;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  #sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 2px solid #a4dca0;
+  }
+
+  #map {
+    position: relative;
+    height: 75vh;
+  }
 }
