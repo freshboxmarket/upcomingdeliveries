@@ -1,29 +1,31 @@
-const map = L.map('map'); // Leave map center unset initially
+const map = L.map('map');
 
-// Auto-center from zones.geojson
-fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
-  .then(res => res.json())
-  .then(data => {
-    const zonesLayer = L.geoJSON(data, {
-      style: { color: "#888", weight: 1, fillOpacity: 0.1 }
-    }).addTo(map);
-
-    map.fitBounds(zonesLayer.getBounds());
-  })
-  .catch(err => console.error("Error loading zones.geojson:", err));
-
-// Tile layer
+// Add base tile layer
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Static Delivery Zone Layers
+// Center map using zones.geojson
+map.whenReady(() => {
+  fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
+    .then(res => res.json())
+    .then(data => {
+      const zonesLayer = L.geoJSON(data, {
+        style: { color: "#888", weight: 1, fillOpacity: 0.1 }
+      }).addTo(map);
+      setTimeout(() => map.fitBounds(zonesLayer.getBounds()), 100);
+    });
+});
+
+// Static delivery zones
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
   "Friday":    { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "blue" },
   "Saturday":  { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "gold" }
 };
+
+const zoneLegend = document.getElementById('zone-legend');
 
 Object.entries(geoLayers).forEach(([name, { url, color }]) => {
   fetch(url)
@@ -33,10 +35,15 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
         style: { color, weight: 2, fillOpacity: 0.15 },
         onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
       }).addTo(map);
+
+      const entry = document.createElement('div');
+      entry.className = 'legend-entry';
+      entry.innerHTML = `<span class="color" style="background:${color};"></span><span>${name}</span>`;
+      zoneLegend.appendChild(entry);
     });
 });
 
-// CSV Marker Layers
+// CSV delivery points
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -59,6 +66,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const groupLayer = L.layerGroup().addTo(map);
   const bufferLayer = L.layerGroup().addTo(map);
 
+  // Create checkbox UI
   const wrapper = document.createElement('div');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -70,19 +78,16 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   label.textContent = `${name} – Loading...`;
 
   checkbox.addEventListener('change', () => {
-    if (checkbox.checked) {
-      map.addLayer(groupLayer);
-      map.addLayer(bufferLayer);
-    } else {
-      map.removeLayer(groupLayer);
-      map.removeLayer(bufferLayer);
-    }
+    checkbox.checked
+      ? [groupLayer, bufferLayer].forEach(layer => map.addLayer(layer))
+      : [groupLayer, bufferLayer].forEach(layer => map.removeLayer(layer));
   });
 
   wrapper.appendChild(checkbox);
   wrapper.appendChild(label);
   csvControl.appendChild(wrapper);
 
+  // Parse CSV
   Papa.parse(url, {
     download: true,
     header: true,
@@ -92,38 +97,36 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
-        const name = row.FundraiserName || "Unknown";
+        const fundraiser = row.FundraiserName || "Unknown";
         const id = row["id:"] || "N/A";
 
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
 
-          const marker = L.circleMarker([lat, lon], {
+          L.circleMarker([lat, lon], {
             radius: 5,
             color,
             fillOpacity: 0.8
-          }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`);
-          marker.addTo(groupLayer);
+          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
 
-          const point = turf.point([lon, lat]);
-          const buffered = turf.buffer(point, 0.1, { units: 'kilometers' });
-          L.geoJSON(buffered, {
+          const buffer = turf.buffer(turf.point([lon, lat]), 0.1, { units: 'kilometers' });
+          L.geoJSON(buffer, {
             style: { color, weight: 1, fillOpacity: 0.2 }
           }).addTo(bufferLayer);
         }
       });
 
-      label.textContent = `${name} – ${count} delivery${count !== 1 ? 'ies' : ''}`;
+      label.textContent = `${name} – ${count} deliveries`;
 
-      const legendItem = document.createElement('div');
-      legendItem.className = 'legend-item';
-      legendItem.innerHTML = `<span class="color-swatch" style="background:${color};"></span>${name} – ${count}`;
-      csvLegend.appendChild(legendItem);
+      const legendEntry = document.createElement('div');
+      legendEntry.className = 'legend-entry';
+      legendEntry.innerHTML = `<span class="color" style="background:${color};"></span><span>${name}</span><span><strong>${count}</strong></span>`;
+      csvLegend.appendChild(legendEntry);
     }
   });
 });
 
-// Logo dragging
+// Draggable floating logo
 (function enableLogoDrag() {
   const logo = document.getElementById("floating-logo");
   let isDragging = false, startX, startY;
