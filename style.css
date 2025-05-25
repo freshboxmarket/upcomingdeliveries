@@ -4,111 +4,70 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Segoe UI', sans-serif;
-}
-
-#map {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
+  background-color: #f9f9f9;
 }
 
 #sidebar {
+  width: 300px;
+  background-color: #e4f5e4;
+  padding: 20px;
   position: absolute;
   top: 0;
   left: 0;
-  width: 280px;
-  height: 100%;
-  background-color: #d4f4d1; /* light green */
-  overflow-y: auto;
   z-index: 1000;
-  border-right: 2px solid #a4dca0;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  padding: 20px 15px;
+  overflow-y: auto;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+#map {
+  height: 100vh;
+  margin-left: 300px;
 }
 
 #logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 10px;
-}
-
-#fbm-logo {
-  max-width: 100%;
-  height: auto;
-  border: 2px solid #4caf50;
-  border-radius: 6px;
-}
-
-#legend, #csv-toggle-box {
   margin-bottom: 20px;
 }
 
-#legend h3, #csv-toggle-box h3 {
+#fbm-logo {
+  width: 120px;
+  border: 2px solid green;
+  border-radius: 8px;
+}
+
+#legend h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
   font-size: 18px;
-  color: #1c4b1c;
-  border-bottom: 2px solid #b2d8b2;
+  border-bottom: 2px solid #ccc;
   padding-bottom: 4px;
-  margin-bottom: 8px;
+  color: #333;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin: 6px 0;
   font-size: 15px;
-  color: #333;
 }
 
 .color-swatch {
   display: inline-block;
   width: 16px;
   height: 16px;
-  margin-right: 8px;
-  border-radius: 3px;
   border: 1px solid #333;
+  border-radius: 3px;
 }
 
-.green { background-color: green; }
-.red { background-color: red; }
-.blue { background-color: blue; }
-.gold { background-color: gold; }
-
-#csv-controls > div {
-  margin-bottom: 12px;
-  padding: 10px;
-  background: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  text-align: left;
-}
-
-.csv-header {
-  font-weight: 600;
-  font-size: 15px;
-  color: #222;
+#csv-legend {
+  margin-top: 12px;
 }
 
 #last-updated {
-  margin-top: 10px;
+  margin-top: 16px;
   font-size: 13px;
-  color: #444;
-  text-align: center;
-}
-
-@media (max-width: 600px) {
-  #sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 2px solid #a4dca0;
-  }
-
-  #map {
-    position: relative;
-    height: 75vh;
-  }
+  color: #666;
 }
