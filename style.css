@@ -3,31 +3,39 @@ body, html {
   padding: 0;
   height: 100%;
   width: 100%;
-  font-family: sans-serif;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9f9f9;
 }
 
 #controls {
-  padding: 10px;
+  padding: 20px;
   background-color: white;
   z-index: 1000;
   position: relative;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 2px solid #ccc;
   display: flex;
   flex-wrap: wrap;
-  gap: 40px;
+  justify-content: center;
+  gap: 60px;
+  text-align: center;
 }
 
 #legend, #csv-toggle-box {
-  min-width: 240px;
+  min-width: 260px;
 }
 
 #legend h3, #csv-toggle-box h3 {
-  margin: 0 0 6px 0;
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 4px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-bottom: 6px;
   font-size: 15px;
 }
@@ -45,9 +53,9 @@ body, html {
 .red { background-color: red; }
 .blue { background-color: blue; }
 .gold { background-color: gold; }
-.black { background-color: black; }
-.orange { background-color: orange; }
 .purple { background-color: purple; }
+.darkblue { background-color: #002366; }
+.pink { background-color: #e75480; }
 
 #map {
   height: 90vh;
@@ -55,17 +63,15 @@ body, html {
 }
 
 #csv-controls > div {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
 }
 
 .csv-header {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.csv-tools button {
-  margin-right: 5px;
-  margin-top: 3px;
-  padding: 2px 6px;
-  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  font-size: 15px;
 }
