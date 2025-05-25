@@ -1,6 +1,6 @@
 const map = L.map('map');
 
-// Add base tile layer
+// Tile layer
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
@@ -17,7 +17,7 @@ map.whenReady(() => {
     });
 });
 
-// Static delivery zones
+// Static Delivery Zones
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
@@ -43,7 +43,7 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
     });
 });
 
-// CSV delivery points
+// CSV Delivery Layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -66,7 +66,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const groupLayer = L.layerGroup().addTo(map);
   const bufferLayer = L.layerGroup().addTo(map);
 
-  // Create checkbox UI
+  // UI Toggle
   const wrapper = document.createElement('div');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -75,7 +75,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
 
   const label = document.createElement('label');
   label.className = 'csv-header';
-  label.textContent = `${name} – Loading...`;
+  label.textContent = `${name}`;
 
   checkbox.addEventListener('change', () => {
     checkbox.checked
@@ -87,7 +87,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   wrapper.appendChild(label);
   csvControl.appendChild(wrapper);
 
-  // Parse CSV
+  // Load CSV + create layers
   Papa.parse(url, {
     download: true,
     header: true,
@@ -116,8 +116,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         }
       });
 
-      label.textContent = `${name} – ${count} deliveries`;
-
+      // Add to left-hand legend (with count)
       const legendEntry = document.createElement('div');
       legendEntry.className = 'legend-entry';
       legendEntry.innerHTML = `<span class="color" style="background:${color};"></span><span>${name}</span><span><strong>${count}</strong></span>`;
@@ -126,7 +125,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   });
 });
 
-// Draggable floating logo
+// Floating Logo Drag
 (function enableLogoDrag() {
   const logo = document.getElementById("floating-logo");
   let isDragging = false, startX, startY;
