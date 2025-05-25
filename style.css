@@ -62,6 +62,9 @@ body, html {
 }
 
 #csv-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin-top: 12px;
 }
 
@@ -70,10 +73,11 @@ body, html {
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  margin-bottom: 8px;
-  border: 2px solid;
-  border-radius: 6px;
   font-size: 15px;
+  border-radius: 6px;
+  border: 2px solid;
+  color: inherit;
+  background: #fff;
 }
 
 .csv-toggle-entry input[type="checkbox"] {
