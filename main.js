@@ -14,7 +14,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// Zone layer colors
+// Zone overlays
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
@@ -33,19 +33,22 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
     });
 });
 
-// CSV layers
+// CSV layers with numbered markers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
-    color: "#800080"
+    color: "#800080",
+    weekNum: 3
   },
   "2 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkTCHp6iaWJBboax7x-Ic8kmX6jlYkTzJhnCnv2WfPtmo70hXPijk0p1JI03vBQTPuyPuDVWzxbavP/pub?output=csv",
-    color: "#002366"
+    color: "#002366",
+    weekNum: 2
   },
   "1 Week Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ1kJEo0ZljAhlg4Lnr_Shz3-OJnV6uehE8vCA8280L4aCfNoWE85WEJnOG2jzL2jE-o0PWTMRZiFu/pub?output=csv",
-    color: "#e75480"
+    color: "#e75480",
+    weekNum: 1
   }
 };
 
@@ -55,7 +58,7 @@ const lastUpdated = document.getElementById('last-updated');
 const now = new Date();
 lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} @ ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
-Object.entries(csvSources).forEach(([name, { url, color }]) => {
+Object.entries(csvSources).forEach(([name, { url, color, weekNum }]) => {
   const groupLayer = L.layerGroup().addTo(map);
   const bufferLayer = L.layerGroup().addTo(map);
 
@@ -100,11 +103,14 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
 
-          L.circleMarker([lat, lon], {
-            radius: 5,
-            color,
-            fillOpacity: 0.8
-          }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
+          const markerIcon = L.divIcon({
+            className: `marker-icon week-${weekNum}`,
+            html: `${weekNum}`
+          });
+
+          L.marker([lat, lon], { icon: markerIcon })
+            .bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`)
+            .addTo(groupLayer);
 
           const buffered = turf.buffer(turf.point([lon, lat]), 0.05, { units: 'kilometers' });
           L.geoJSON(buffered, {
