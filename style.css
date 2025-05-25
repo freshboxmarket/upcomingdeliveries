@@ -7,37 +7,34 @@ body, html {
   background-color: #f9f9f9;
 }
 
-#controls {
-  padding: 20px;
-  background-color: white;
-  z-index: 1000;
-  position: relative;
-  border-bottom: 2px solid #ccc;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 60px;
+#legend {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 180px;
+  background-color: #e2f4dc;
+  padding: 12px;
+  overflow-y: auto;
+  border-right: 2px solid #bbb;
+  z-index: 1100;
+}
+
+#legend h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
   text-align: center;
-}
-
-#legend, #csv-toggle-box {
-  min-width: 260px;
-}
-
-#legend h3, #csv-toggle-box h3 {
-  margin: 0 0 12px 0;
-  font-size: 18px;
-  color: #333;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 4px;
+  color: #145214;
 }
 
 .section-title {
   font-weight: bold;
-  margin-top: 10px;
-  font-size: 15px;
-  color: #222;
-  border-bottom: 1px solid #bbb;
+  font-size: 14px;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #114911;
+  border-bottom: 1px solid #ccc;
   padding-bottom: 4px;
 }
 
@@ -45,25 +42,33 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  background: #f1fbef;
   margin: 4px 0;
-  background: #f4f4f4;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  font-size: 13px;
+  border: 1px solid #b3dab0;
 }
 
 .legend-entry span.color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  margin-right: 8px;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  border-radius: 3px;
   border: 1px solid #333;
 }
 
-#map {
-  height: 90vh;
-  width: 100%;
+#csv-toggle-box {
+  margin-left: 200px;
+  padding: 10px;
+}
+
+#csv-toggle-box h3 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
 }
 
 #csv-controls > div {
@@ -76,15 +81,19 @@ body, html {
 
 .csv-header {
   font-weight: 600;
-  margin-bottom: 5px;
-  font-size: 15px;
+  font-size: 14px;
 }
 
-/* Floating Logo Styling */
+#map {
+  height: 100vh;
+  width: 100%;
+}
+
+/* Floating Logo */
 #floating-logo {
   position: absolute;
   top: 16px;
-  left: 16px;
+  left: 200px;
   width: 80px;
   border: 3px solid green;
   border-radius: 6px;
