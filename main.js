@@ -3,7 +3,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Center map on zones
+// Fit to zones
 fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
   .then(res => res.json())
   .then(data => {
@@ -13,38 +13,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// Zone layers with toggle refs
-const zoneLayers = {};
-const geoLayers = {
-  "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
-  "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
-  "Friday":    { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF" },
-  "Saturday":  { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700" }
-};
-
-Object.entries(geoLayers).forEach(([day, { url, color }]) => {
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      const layer = L.geoJSON(data, {
-        style: { color, weight: 2, fillOpacity: 0.15 },
-        onEachFeature: (f, l) => l.bindPopup(`${day} Zone`)
-      }).addTo(map);
-      zoneLayers[day] = layer;
-    });
-});
-
-// Toggle zone layers
-document.querySelectorAll('.zone-toggle').forEach(checkbox => {
-  checkbox.addEventListener('change', () => {
-    const key = checkbox.dataset.key;
-    if (zoneLayers[key]) {
-      checkbox.checked ? map.addLayer(zoneLayers[key]) : map.removeLayer(zoneLayers[key]);
-    }
-  });
-});
-
-// CSV delivery layers
+// CSV layer definitions
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -71,11 +40,17 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const bufferLayer = L.layerGroup().addTo(map);
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'legend-item';
+  wrapper.className = 'csv-toggle-entry';
+  wrapper.style.borderColor = color;
+  wrapper.style.color = color;
+
+  const label = document.createElement('span');
+  label.textContent = `${name} – Loading...`;
 
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = true;
+  checkbox.style.marginLeft = '12px';
 
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
@@ -87,16 +62,8 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     }
   });
 
-  const swatch = document.createElement('span');
-  swatch.className = 'color-swatch';
-  swatch.style.backgroundColor = color;
-
-  const label = document.createElement('span');
-  label.textContent = `${name} – Loading...`;
-
-  wrapper.appendChild(checkbox);
-  wrapper.appendChild(swatch);
   wrapper.appendChild(label);
+  wrapper.appendChild(checkbox);
   csvLegend.appendChild(wrapper);
 
   Papa.parse(url, {
@@ -104,6 +71,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     header: true,
     complete: function(results) {
       let count = 0;
+
       results.data.forEach((row, i) => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
@@ -112,6 +80,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
 
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
+
           L.circleMarker([lat, lon], {
             radius: 5,
             color,
@@ -125,7 +94,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         }
       });
 
-      label.textContent = `${name} – ${count}`;
+      label.textContent = `${name} – ${count} deliveries`;
     }
   });
 });
