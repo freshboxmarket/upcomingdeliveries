@@ -31,7 +31,7 @@ body, html {
 }
 
 #fbm-logo {
-  width: 180px; /* 1.5x increase */
+  width: 180px;
   border: 2px solid green;
   border-radius: 8px;
 }
@@ -89,4 +89,33 @@ body, html {
   margin-top: 16px;
   font-size: 13px;
   color: #666;
+}
+
+/* Custom Marker Styles */
+.marker-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: white;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 28px;
+  border: 3px solid;
+  box-shadow: 0 0 2px rgba(0,0,0,0.3);
+}
+
+.week-1 {
+  border-color: #e75480;
+  color: #e75480;
+}
+
+.week-2 {
+  border-color: #002366;
+  color: #002366;
+}
+
+.week-3 {
+  border-color: #800080;
+  color: #800080;
 }
