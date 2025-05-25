@@ -1,11 +1,11 @@
 const map = L.map('map');
 
-// ✅ Add base tiles first so it renders immediately
+// Add tile layer immediately
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// ✅ Center map on zones.geojson
+// Fit map to zones.geojson
 fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
   .then(res => res.json())
   .then(data => {
@@ -19,7 +19,7 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// ✅ Static delivery zone overlays
+// Delivery zone overlays
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "green" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "red" },
@@ -35,11 +35,10 @@ Object.entries(geoLayers).forEach(([name, { url, color }]) => {
         style: { color, weight: 2, fillOpacity: 0.15 },
         onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
       }).addTo(map);
-    })
-    .catch(err => console.error(`Failed to load ${name} zone`, err));
+    });
 });
 
-// ✅ CSV Delivery Layers
+// CSV point layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
@@ -57,12 +56,16 @@ const csvSources = {
 
 const csvControl = document.getElementById('csv-controls');
 const csvLegend = document.getElementById('csv-legend');
+const lastUpdated = document.getElementById('last-updated');
+
+// Build timestamp
+const now = new Date();
+lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} @ ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
 Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const groupLayer = L.layerGroup().addTo(map);
   const bufferLayer = L.layerGroup().addTo(map);
 
-  // ✅ Create toggle interface
   const wrapper = document.createElement('div');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -87,14 +90,13 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   wrapper.appendChild(label);
   csvControl.appendChild(wrapper);
 
-  // ✅ Load CSV data and add points + buffer
   Papa.parse(url, {
     download: true,
     header: true,
     complete: function(results) {
       let count = 0;
 
-      results.data.forEach(row => {
+      results.data.forEach((row, i) => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
         const fundraiser = row.FundraiserName || "Unknown";
@@ -110,7 +112,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
           }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`);
           marker.addTo(groupLayer);
 
-          // Light-weight buffer with slight delay to avoid render lag
+          // Optional lightweight buffer
           setTimeout(() => {
             const point = turf.point([lon, lat]);
             const buffered = turf.buffer(point, 0.05, { units: 'kilometers' });
@@ -123,14 +125,12 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
               }
             });
             bufferGeo.addTo(bufferLayer);
-          }, count * 5); // stagger buffers slightly
+          }, i * 5);
         }
       });
 
-      // ✅ Update toggle label
       label.textContent = `${name} – ${count} delivery${count !== 1 ? 'ies' : ''}`;
 
-      // ✅ Update delivery legend
       const legendItem = document.createElement('div');
       legendItem.className = 'legend-item';
       legendItem.innerHTML = `<span class="color-swatch" style="background:${color};"></span>${name} – ${count}`;
