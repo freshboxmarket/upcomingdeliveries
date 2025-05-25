@@ -1,9 +1,11 @@
 const map = L.map('map');
+
+// Basemap
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Fit to zones
+// Fit to zones.geojson
 fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
   .then(res => res.json())
   .then(data => {
@@ -13,7 +15,26 @@ fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
     map.fitBounds(zonesLayer.getBounds());
   });
 
-// CSV delivery layers
+// Zone overlays
+const geoLayers = {
+  "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
+  "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
+  "Friday":    { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF" },
+  "Saturday":  { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700" }
+};
+
+Object.entries(geoLayers).forEach(([name, { url, color }]) => {
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      L.geoJSON(data, {
+        style: { color, weight: 2, fillOpacity: 0.15 },
+        onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
+      }).addTo(map);
+    });
+});
+
+// CSV layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
