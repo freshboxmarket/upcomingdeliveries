@@ -4,29 +4,34 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-const zoomControl = L.control.zoom({ position: 'topleft' }).addTo(map);
 const zoomEl = document.querySelector('.leaflet-control-zoom');
 document.getElementById('zoom-controls').appendChild(zoomEl);
-
 document.getElementById('last-updated').textContent =
   `Last updated: ${new Date().toLocaleString()}`;
 
-console.log('📍 Initial map center:', center);
+const debug = (msg) => {
+  console.log(msg);
+  const panel = document.getElementById('status-debug');
+  const p = document.createElement('div');
+  p.textContent = msg;
+  panel.appendChild(p);
+};
 
-// ========== LOAD GEOJSON ZONES ==========
+// --- Load Zones ---
 const zones = {
-  "Wednesday":  { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000", layer: null },
-  "Thursday":   { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000", layer: null },
-  "Friday":     { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF", layer: null },
-  "Saturday":   { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700", layer: null }
+  "Wednesday":  { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
+  "Thursday":   { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
+  "Friday":     { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF" },
+  "Saturday":   { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700" }
 };
 
 const zoneLayers = [];
 
 for (const [day, { url, color }] of Object.entries(zones)) {
+  debug(`📦 Fetching ${day} zone...`);
   fetch(url)
     .then(res => {
-      if (!res.ok) throw new Error(`${day} GeoJSON fetch failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`❌ ${day} fetch failed (${res.status})`);
       return res.json();
     })
     .then(data => {
@@ -34,27 +39,17 @@ for (const [day, { url, color }] of Object.entries(zones)) {
         style: { color, weight: 2, fillOpacity: 0.15 },
         onEachFeature: (f, l) => l.bindPopup(`${day} Zone`)
       }).addTo(map);
-      zones[day].layer = layer;
       zoneLayers.push({ day, color, layer });
-      console.log(`✅ ${day} zone loaded`);
+      debug(`✅ ${day} zone loaded`);
     })
     .catch(err => {
-      console.error(`❌ Failed to load ${day} zone layer from ${url}`, err);
+      debug(`❌ ${day} zone error: ${err.message}`);
+      console.error(err);
     });
 }
 
-// ========== CSV DELIVERY LAYERS ==========
+// --- Load CSVs ---
 const csvSources = {
-  "3 Weeks Out": {
-    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxI2JY5RJX8yqID4cMV9tf1WwChHoWejGfIQhCtZTpjMlmJv7rr_qW0uDu1sYjdnJKZuRpQXHcYgTq/pub?output=csv",
-    color: "#800080",
-    defaultVisible: false
-  },
-  "2 Weeks Out": {
-    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQJZEqXvTnT0yeHqd2ozrJxV6Bi-BczkUJTCuQUhxnkg2zyGWH0sb60pDrZnAb5ANigjDZKn0RwDZQ3/pub?output=csv",
-    color: "#002366",
-    defaultVisible: false
-  },
   "1 Week Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQQsZG2J-1AfAh7Xy4fuwrKZ1xAWrZG_7gQmhNsZPHlLGUqXyoZZgDkAyLPBAq0qjRHxKKDF3V7dfAZ/pub?output=csv",
     color: "#e75480",
@@ -63,14 +58,10 @@ const csvSources = {
 };
 
 const csvLegend = document.getElementById('csv-legend');
-const statsPanel = document.getElementById('stats-panel');
 const deliveryLayers = {};
 
 function loadAllCSVs() {
-  statsPanel.innerHTML = '';
-  csvLegend.innerHTML = '';
-
-  Object.entries(csvSources).forEach(([week, { url, color, defaultVisible }]) => {
+  for (const [week, { url, color, defaultVisible }] of Object.entries(csvSources)) {
     const group = L.layerGroup();
     deliveryLayers[week] = group;
     if (defaultVisible) group.addTo(map);
@@ -95,24 +86,17 @@ function loadAllCSVs() {
     row.appendChild(box);
     csvLegend.appendChild(row);
 
+    debug(`📦 Fetching ${week} CSV...`);
+
     Papa.parse(url, {
       download: true,
       header: true,
-      worker: true,
       error: (err) => {
-        console.error(`❌ Failed to fetch/parse CSV for ${week} from ${url}`, err);
-        label.textContent = `${week} – Failed`;
+        debug(`❌ ${week} CSV error: ${err.message}`);
+        console.error(err);
       },
       complete: (results) => {
-        if (!results.data || results.data.length === 0) {
-          console.warn(`⚠️ No data returned for ${week}`);
-          label.textContent = `${week} – No data`;
-          return;
-        }
-
         let count = 0;
-        const features = [];
-
         results.data.forEach(row => {
           const lat = parseFloat(row.lat);
           const lon = parseFloat(row.long);
@@ -121,57 +105,33 @@ function loadAllCSVs() {
 
           if (!isNaN(lat) && !isNaN(lon)) {
             count++;
-            const point = turf.point([lon, lat], { id, name });
-            features.push(point);
-
-            const marker = L.circleMarker([lat, lon], {
+            L.circleMarker([lat, lon], {
               radius: 10,
               color,
               weight: 3,
               fillColor: '#fff',
               fillOpacity: 1
-            }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`);
-            group.addLayer(marker);
+            }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`).addTo(group);
           }
         });
-
         label.textContent = `${week} – ${count} deliveries`;
-
-        // Zonal stats
-        const stats = {};
-        const fc = turf.featureCollection(features);
-        zoneLayers.forEach(({ day, layer }) => {
-          let zoneCount = 0;
-          layer.eachLayer(zone => {
-            const polygon = zone.feature;
-            fc.features.forEach(pt => {
-              if (turf.booleanPointInPolygon(pt, polygon)) zoneCount++;
-            });
-          });
-          stats[day] = zoneCount;
-        });
-
-        const statBlock = document.createElement('div');
-        statBlock.innerHTML = `<strong>${week} Stats:</strong><br>` +
-          Object.entries(stats).map(([d, n]) => `${d}: ${n}`).join('<br>');
-        statsPanel.appendChild(statBlock);
-        console.log(`✅ ${week} CSV loaded with ${count} points`);
+        debug(`✅ ${week} CSV loaded: ${count} point(s)`);
       }
     });
-  });
+  }
 }
 
 loadAllCSVs();
 
 document.getElementById('refresh-btn').addEventListener('click', () => {
-  console.log('🔄 Refreshing all CSV layers...');
+  document.getElementById('status-debug').innerHTML = '';
   for (const group of Object.values(deliveryLayers)) {
     group.clearLayers();
   }
   loadAllCSVs();
 });
 
-// Sidebar toggle
+// Sidebar collapse
 const sidebar = document.getElementById('sidebar');
 const mapEl = document.getElementById('map');
 const toggle = document.getElementById('collapse-toggle');
