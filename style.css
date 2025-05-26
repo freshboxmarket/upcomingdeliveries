@@ -50,6 +50,16 @@ body, html {
   border-radius: 8px;
 }
 
+#toggle-btn {
+  margin: 10px auto;
+  padding: 8px 12px;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 6px;
+  background: #c8e6c9;
+  border: 2px solid #388e3c;
+}
+
 .legend-row {
   display: flex;
   flex-direction: column;
