@@ -48,10 +48,48 @@ const csvSources = {
 const csvLegend = document.getElementById('csv-legend');
 const totalUnique = document.getElementById('total-unique');
 const lastUpdated = document.getElementById('last-updated');
+const statsContainer = document.getElementById('stats-container');
+
 const now = new Date();
 lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} @ ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
 const uniqueIDs = new Set();
+const stats = {
+  "3 Weeks Out": { total: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 },
+  "2 Weeks Out": { total: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 },
+  "1 Week Out": { total: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 }
+};
+
+const updateStatsDisplay = () => {
+  statsContainer.innerHTML = '';
+  Object.entries(stats).forEach(([week, data]) => {
+    const div = document.createElement('div');
+    div.className = 'stats-entry';
+    div.innerHTML = `
+      <strong>${week}</strong>
+      <span>Total: ${data.total}</span>
+      <span>Wed: ${data.Wednesday}</span>
+      <span>Thu: ${data.Thursday}</span>
+      <span>Fri: ${data.Friday}</span>
+      <span>Sat: ${data.Saturday}</span>
+    `;
+    statsContainer.appendChild(div);
+  });
+
+  const dayTotals = { Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  Object.values(stats).forEach(data => {
+    ["Wednesday", "Thursday", "Friday", "Saturday"].forEach(day => {
+      dayTotals[day] += data[day];
+    });
+  });
+
+  const busiestDay = Object.entries(dayTotals).reduce((a, b) => b[1] > a[1] ? b : a)[0];
+
+  const summary = document.createElement('div');
+  summary.className = 'stats-entry';
+  summary.innerHTML = `<strong>Busiest Day:</strong> ${busiestDay}`;
+  statsContainer.appendChild(summary);
+};
 
 Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const groupLayer = L.layerGroup().addTo(map);
@@ -68,6 +106,7 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = true;
+
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
       map.addLayer(groupLayer);
@@ -93,10 +132,13 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
         const lon = parseFloat(row.long);
         const id = (row["id:"] || "").trim();
         const fundraiser = row.FundraiserName || "Unknown";
+        const day = (row.DeliveryDay || "").trim();
 
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
           if (id) uniqueIDs.add(id);
+          if (stats[name] && stats[name][day] !== undefined) stats[name][day]++;
+          stats[name].total++;
 
           L.circleMarker([lat, lon], {
             radius: 10,
@@ -115,17 +157,18 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
 
       label.textContent = `${name} – ${count} deliveries`;
       totalUnique.textContent = `Total unique customers: ${uniqueIDs.size}`;
+      updateStatsDisplay();
     }
   });
 });
 
-// Sidebar resizing logic
+// Sidebar resizing
 const sidebar = document.getElementById('sidebar');
 const mapEl = document.getElementById('map');
 const handle = document.getElementById('resize-handle');
 let isResizing = false;
 
-handle.addEventListener('mousedown', e => {
+handle.addEventListener('mousedown', () => {
   isResizing = true;
   document.body.style.cursor = 'ew-resize';
 });
