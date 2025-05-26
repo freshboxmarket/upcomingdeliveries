@@ -4,7 +4,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Move zoom inside sidebar
+// Move zoom into sidebar
 const zoomControl = L.control.zoom({ position: 'topleft' }).addTo(map);
 const zoomEl = document.querySelector('.leaflet-control-zoom');
 document.getElementById('zoom-controls').appendChild(zoomEl);
@@ -12,26 +12,30 @@ document.getElementById('zoom-controls').appendChild(zoomEl);
 document.getElementById('last-updated').textContent =
   `Last updated: ${new Date().toLocaleString()}`;
 
-// Load delivery zones
+// Load zone polygons
 const zones = {
-  "Wednesday":  { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
-  "Thursday":   { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
-  "Friday":     { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF" },
-  "Saturday":   { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700" }
+  "Wednesday":  { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000", layer: null },
+  "Thursday":   { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000", layer: null },
+  "Friday":     { url: "https://freshboxmarket.github.io/maplayers/fri_group.geojson", color: "#0000FF", layer: null },
+  "Saturday":   { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700", layer: null }
 };
+
+const zoneLayers = [];
 
 for (const [day, { url, color }] of Object.entries(zones)) {
   fetch(url)
     .then(res => res.json())
     .then(data => {
-      L.geoJSON(data, {
+      const layer = L.geoJSON(data, {
         style: { color, weight: 2, fillOpacity: 0.15 },
         onEachFeature: (f, l) => l.bindPopup(`${day} Zone`)
       }).addTo(map);
+      zones[day].layer = layer;
+      zoneLayers.push({ day, color, layer });
     });
 }
 
-// Load CSV delivery layers
+// Delivery Layers
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxI2JY5RJX8yqID4cMV9tf1WwChHoWejGfIQhCtZTpjMlmJv7rr_qW0uDu1sYjdnJKZuRpQXHcYgTq/pub?output=csv",
@@ -51,60 +55,105 @@ const csvSources = {
 };
 
 const csvLegend = document.getElementById('csv-legend');
+const statsPanel = document.getElementById('stats-panel');
+const deliveryLayers = {};
 
-Object.entries(csvSources).forEach(([week, { url, color, defaultVisible }]) => {
-  const group = L.layerGroup();
-  if (defaultVisible) group.addTo(map);
+function loadAllCSVs() {
+  statsPanel.innerHTML = '';
+  csvLegend.innerHTML = '';
 
-  const row = document.createElement('div');
-  row.className = 'csv-toggle-entry';
-  row.style.borderColor = color;
-  row.style.color = color;
+  Object.entries(csvSources).forEach(([week, { url, color, defaultVisible }]) => {
+    const group = L.layerGroup();
+    deliveryLayers[week] = group;
+    if (defaultVisible) group.addTo(map);
 
-  const label = document.createElement('span');
-  label.textContent = `${week} – Loading...`;
+    const row = document.createElement('div');
+    row.className = 'csv-toggle-entry';
+    row.style.borderColor = color;
+    row.style.color = color;
 
-  const box = document.createElement('input');
-  box.type = 'checkbox';
-  box.checked = defaultVisible;
-  box.addEventListener('change', () => {
-    if (box.checked) map.addLayer(group);
-    else map.removeLayer(group);
+    const label = document.createElement('span');
+    label.textContent = `${week} – Loading...`;
+
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = defaultVisible;
+    box.addEventListener('change', () => {
+      if (box.checked) map.addLayer(group);
+      else map.removeLayer(group);
+    });
+
+    row.appendChild(label);
+    row.appendChild(box);
+    csvLegend.appendChild(row);
+
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      worker: true,
+      complete: (results) => {
+        let count = 0;
+        const features = [];
+
+        results.data.forEach(row => {
+          const lat = parseFloat(row.lat);
+          const lon = parseFloat(row.long);
+          const id = row.id || '';
+          const name = row.FundraiserName || 'Unknown';
+
+          if (!isNaN(lat) && !isNaN(lon)) {
+            count++;
+            const point = turf.point([lon, lat], { id, name });
+            features.push(point);
+
+            const marker = L.circleMarker([lat, lon], {
+              radius: 10,
+              color,
+              weight: 3,
+              fillColor: '#fff',
+              fillOpacity: 1
+            }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`);
+            group.addLayer(marker);
+          }
+        });
+
+        label.textContent = `${week} – ${count} deliveries`;
+
+        // Spatial zone stats
+        const stats = {};
+        const fc = turf.featureCollection(features);
+        zoneLayers.forEach(({ day, layer }) => {
+          let zoneCount = 0;
+          layer.eachLayer(zone => {
+            const polygon = zone.feature;
+            fc.features.forEach(pt => {
+              if (turf.booleanPointInPolygon(pt, polygon)) zoneCount++;
+            });
+          });
+          stats[day] = zoneCount;
+        });
+
+        const statBlock = document.createElement('div');
+        statBlock.innerHTML = `<strong>${week} Stats:</strong><br>` +
+          Object.entries(stats).map(([d, n]) => `${d}: ${n}`).join('<br>');
+        statsPanel.appendChild(statBlock);
+      }
+    });
   });
+}
 
-  row.appendChild(label);
-  row.appendChild(box);
-  csvLegend.appendChild(row);
+// Initial load
+loadAllCSVs();
 
-  Papa.parse(url, {
-    download: true,
-    header: true,
-    worker: true,
-    complete: (results) => {
-      let count = 0;
-      results.data.forEach(row => {
-        const lat = parseFloat(row.lat);
-        const lon = parseFloat(row.long);
-        const id = row.id || '';
-        const name = row.FundraiserName || 'Unknown';
-
-        if (!isNaN(lat) && !isNaN(lon)) {
-          count++;
-          L.circleMarker([lat, lon], {
-            radius: 10,
-            color,
-            weight: 3,
-            fillColor: '#fff',
-            fillOpacity: 1
-          }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`).addTo(group);
-        }
-      });
-      label.textContent = `${week} – ${count} deliveries`;
-    }
-  });
+// Refresh button
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  for (const group of Object.values(deliveryLayers)) {
+    group.clearLayers();
+  }
+  loadAllCSVs();
 });
 
-// Collapsible sidebar
+// Sidebar toggle
 const sidebar = document.getElementById('sidebar');
 const mapEl = document.getElementById('map');
 const toggle = document.getElementById('collapse-toggle');
