@@ -4,7 +4,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Move zoom into sidebar
 const zoomControl = L.control.zoom({ position: 'topleft' }).addTo(map);
 const zoomEl = document.querySelector('.leaflet-control-zoom');
 document.getElementById('zoom-controls').appendChild(zoomEl);
@@ -12,7 +11,9 @@ document.getElementById('zoom-controls').appendChild(zoomEl);
 document.getElementById('last-updated').textContent =
   `Last updated: ${new Date().toLocaleString()}`;
 
-// Load zone polygons
+console.log('📍 Initial map center:', center);
+
+// ========== LOAD GEOJSON ZONES ==========
 const zones = {
   "Wednesday":  { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000", layer: null },
   "Thursday":   { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000", layer: null },
@@ -24,7 +25,10 @@ const zoneLayers = [];
 
 for (const [day, { url, color }] of Object.entries(zones)) {
   fetch(url)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`${day} GeoJSON fetch failed: ${res.statusText}`);
+      return res.json();
+    })
     .then(data => {
       const layer = L.geoJSON(data, {
         style: { color, weight: 2, fillOpacity: 0.15 },
@@ -32,10 +36,14 @@ for (const [day, { url, color }] of Object.entries(zones)) {
       }).addTo(map);
       zones[day].layer = layer;
       zoneLayers.push({ day, color, layer });
+      console.log(`✅ ${day} zone loaded`);
+    })
+    .catch(err => {
+      console.error(`❌ Failed to load ${day} zone layer from ${url}`, err);
     });
 }
 
-// Delivery Layers
+// ========== CSV DELIVERY LAYERS ==========
 const csvSources = {
   "3 Weeks Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxI2JY5RJX8yqID4cMV9tf1WwChHoWejGfIQhCtZTpjMlmJv7rr_qW0uDu1sYjdnJKZuRpQXHcYgTq/pub?output=csv",
@@ -91,7 +99,17 @@ function loadAllCSVs() {
       download: true,
       header: true,
       worker: true,
+      error: (err) => {
+        console.error(`❌ Failed to fetch/parse CSV for ${week} from ${url}`, err);
+        label.textContent = `${week} – Failed`;
+      },
       complete: (results) => {
+        if (!results.data || results.data.length === 0) {
+          console.warn(`⚠️ No data returned for ${week}`);
+          label.textContent = `${week} – No data`;
+          return;
+        }
+
         let count = 0;
         const features = [];
 
@@ -119,7 +137,7 @@ function loadAllCSVs() {
 
         label.textContent = `${week} – ${count} deliveries`;
 
-        // Spatial zone stats
+        // Zonal stats
         const stats = {};
         const fc = turf.featureCollection(features);
         zoneLayers.forEach(({ day, layer }) => {
@@ -137,16 +155,16 @@ function loadAllCSVs() {
         statBlock.innerHTML = `<strong>${week} Stats:</strong><br>` +
           Object.entries(stats).map(([d, n]) => `${d}: ${n}`).join('<br>');
         statsPanel.appendChild(statBlock);
+        console.log(`✅ ${week} CSV loaded with ${count} points`);
       }
     });
   });
 }
 
-// Initial load
 loadAllCSVs();
 
-// Refresh button
 document.getElementById('refresh-btn').addEventListener('click', () => {
+  console.log('🔄 Refreshing all CSV layers...');
   for (const group of Object.values(deliveryLayers)) {
     group.clearLayers();
   }
