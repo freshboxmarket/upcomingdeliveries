@@ -1,5 +1,6 @@
+// Updated Leaflet Map Logic with improved Highlight labeling
 const center = JSON.parse(document.currentScript.dataset.center || '[43.5,-79.8]');
-const map = L.map('map', { zoomControl: false }).setView(center, 10); // Slightly zoomed out
+const map = L.map('map', { zoomControl: false }).setView(center, 10);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
@@ -61,7 +62,7 @@ const csvSources = {
 
 const csvLegend = document.getElementById('csv-legend');
 const deliveryLayers = {};
-const labelPopups = [];
+let labelLayers = L.layerGroup().addTo(map);
 let highlightActive = false;
 
 function createCustomMarker(color, number) {
@@ -135,7 +136,7 @@ loadCSVs();
 document.getElementById('refresh-btn').addEventListener('click', () => {
   const btn = document.getElementById('refresh-btn');
   btn.style.fontWeight = 'bold';
-  setTimeout(() => { btn.style.fontWeight = 'normal'; }, 4000);
+  setTimeout(() => { btn.style.fontWeight = 'normal'; }, 7000);
 
   const msg = document.createElement('div');
   msg.textContent = '✅ Data refreshed';
@@ -150,12 +151,12 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
 
   document.getElementById('status-debug').innerHTML = '';
   Object.values(deliveryLayers).forEach(group => group.clearLayers());
+  labelLayers.clearLayers();
   loadCSVs();
 });
 
 function clearHighlight() {
-  labelPopups.forEach(p => map.removeLayer(p));
-  labelPopups.length = 0;
+  labelLayers.clearLayers();
   highlightActive = false;
   document.getElementById('highlight-btn').classList.remove('active');
 }
@@ -179,7 +180,7 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
   }
 
   const [label] = active;
-  const { url } = csvSources[label];
+  const { url, color } = csvSources[label];
   highlightActive = true;
   document.getElementById('highlight-btn').classList.add('active');
 
@@ -193,11 +194,21 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
         const id = r.id || '';
         const name = r.FundraiserName || 'Unknown';
         if (!isNaN(lat) && !isNaN(lng)) {
-          const p = L.popup({ autoClose: false })
-            .setLatLng([lat, lng])
-            .setContent(`<strong>${name}</strong><br>ID: ${id}`)
-            .openOn(map);
-          labelPopups.push(p);
+          const div = L.divIcon({
+            className: 'label-icon',
+            html: `<div style="
+              font-family: Oswald, sans-serif;
+              font-weight: bold;
+              font-size: 16px;
+              color: black;
+              padding: 4px 8px;
+              border: 2px solid ${color};
+              border-radius: 6px;
+              background: white;">
+              ${name} (${id})
+            </div>`
+          });
+          L.marker([lat, lng], { icon: div }).addTo(labelLayers);
         }
       });
     }
