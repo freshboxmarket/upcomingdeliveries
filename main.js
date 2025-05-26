@@ -1,6 +1,6 @@
 // Updated Leaflet Map Logic with improved Highlight labeling
 const center = JSON.parse(document.currentScript.dataset.center || '[43.5,-79.8]');
-const map = L.map('map', { zoomControl: false }).setView(center
+const map = L.map('map', { zoomControl: false }).setView(center, 8);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
@@ -210,6 +210,22 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
               ${name} (${id})
             </div>`
           });
+          const marker = L.marker([lat, lng], { icon: div });
+          labelLayers.addLayer(marker);
+        }
+      });
+      if (count > 0) {
+        map.addLayer(labelLayers);
+        debug(`✅ Highlighted ${count} points from ${label}`);
+      } else {
+        debug(`⚠ No valid points found in ${label}`);
+      }
+    },
+    error: err => {
+      debug(`❌ Highlight failed: ${err.message}`);
+    }
+  });
+});
           L.marker([lat, lng], { icon: div }).addTo(labelLayers);
         }
       });
