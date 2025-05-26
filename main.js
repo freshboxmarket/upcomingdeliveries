@@ -6,7 +6,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Move zoom controls to custom container
 const zoomControl = L.control.zoom({ position: 'bottomleft' });
 zoomControl.addTo(map);
 const zoomEl = document.querySelector('.leaflet-control-zoom');
@@ -22,7 +21,6 @@ function debug(msg) {
   console.log(msg);
 }
 
-// Load delivery zones (GeoJSON)
 const zoneDefs = {
   Wednesday: { url: 'https://freshboxmarket.github.io/maplayers/wed_group.geojson', color: '#008000' },
   Thursday:  { url: 'https://freshboxmarket.github.io/maplayers/thurs_group.geojson', color: '#FF0000' },
@@ -43,7 +41,6 @@ Object.entries(zoneDefs).forEach(([day, { url, color }]) => {
     .catch(err => debug(`❌ ${day} zone failed to load (${err})`));
 });
 
-// CSV delivery layers
 const csvSources = {
   "1 Week Out": {
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ1kJEo0ZljAhlg4Lnr_Shz3-OJnV6uehE8vCA8280L4aCfNoWE85WEJnOG2jzL2jE-o0PWTMRZiFu/pub?output=csv",
@@ -67,6 +64,8 @@ const csvSources = {
 
 const csvLegend = document.getElementById('csv-legend');
 const deliveryLayers = {};
+const labelPopups = [];
+let highlightActive = false;
 
 function createCustomMarker(color, number) {
   return L.divIcon({
@@ -85,6 +84,7 @@ function createCustomMarker(color, number) {
 }
 
 function loadCSVs() {
+  csvLegend.innerHTML = ''; // Clear previous toggles on refresh
   for (const [label, src] of Object.entries(csvSources)) {
     const group = L.layerGroup();
     deliveryLayers[label] = group;
@@ -103,6 +103,7 @@ function loadCSVs() {
     toggle.checked = src.defaultVisible;
     toggle.addEventListener('change', () => {
       toggle.checked ? map.addLayer(group) : map.removeLayer(group);
+      if (highlightActive) clearHighlight();
     });
 
     row.appendChild(span);
@@ -136,19 +137,47 @@ loadCSVs();
 
 document.getElementById('refresh-btn').addEventListener('click', () => {
   document.getElementById('status-debug').innerHTML = '';
-  Object.values(deliveryLayers).forEach(g => g.clearLayers());
+  for (const group of Object.values(deliveryLayers)) {
+    group.clearLayers();
+  }
   loadCSVs();
 });
 
+function clearHighlight() {
+  labelPopups.forEach(p => map.removeLayer(p));
+  labelPopups.length = 0;
+  highlightActive = false;
+  document.getElementById('highlight-btn').style.background = '#fbc02d';
+  document.getElementById('highlight-btn').style.fontWeight = 'normal';
+}
+
 document.getElementById('highlight-btn').addEventListener('click', () => {
-  const active = Object.entries(deliveryLayers).filter(([label, group]) => map.hasLayer(group));
+  if (highlightActive) {
+    clearHighlight();
+    return;
+  }
+
+  const active = Object.entries(deliveryLayers).filter(([_, group]) => map.hasLayer(group));
   if (active.length !== 1) {
-    alert('Highlight only works when ONE CSV layer is toggled.');
+    const msg = document.createElement('div');
+    msg.textContent = 'Please toggle only ONE layer to highlight.';
+    msg.style.background = '#fff3cd';
+    msg.style.color = '#856404';
+    msg.style.border = '1px solid #ffeeba';
+    msg.style.padding = '6px';
+    msg.style.marginTop = '8px';
+    msg.style.borderRadius = '4px';
+    document.getElementById('status-debug').appendChild(msg);
+    setTimeout(() => msg.remove(), 4000);
     return;
   }
 
   const [label] = active;
   const { url } = csvSources[label];
+  highlightActive = true;
+  const btn = document.getElementById('highlight-btn');
+  btn.style.background = '#ffd700';
+  btn.style.fontWeight = 'bold';
 
   Papa.parse(url, {
     download: true,
@@ -160,17 +189,17 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
         const id = r.id || '';
         const name = r.FundraiserName || 'Unknown';
         if (!isNaN(lat) && !isNaN(lng)) {
-          L.popup({ autoClose: false })
+          const p = L.popup({ autoClose: false })
             .setLatLng([lat, lng])
             .setContent(`<strong>${name}</strong><br>ID: ${id}`)
             .openOn(map);
+          labelPopups.push(p);
         }
       });
     }
   });
 });
 
-// Resize logic for sidebar
 (function enableResize() {
   const sidebar = document.getElementById('sidebar');
   const handle = document.getElementById('resize-handle');
