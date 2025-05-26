@@ -1,6 +1,6 @@
 // Updated Leaflet Map Logic with improved Highlight labeling
 const center = JSON.parse(document.currentScript.dataset.center || '[43.5,-79.8]');
-const map = L.map('map', { zoomControl: false }).setView(center, 10);
+const map = L.map('map', { zoomControl: false }).setView(center
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
@@ -225,16 +225,27 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
   const handle = document.getElementById('resize-handle');
   const mapDiv = document.getElementById('map');
 
+  const resize = (x) => {
+    const newWidth = Math.max(100, x);
+    sidebar.style.width = newWidth + 'px';
+    mapDiv.style.marginLeft = newWidth + 'px';
+  };
+
   handle.addEventListener('mousedown', e => {
     e.preventDefault();
-    document.onmousemove = function (e) {
-      const width = Math.max(100, e.clientX);
-      sidebar.style.width = width + 'px';
-      mapDiv.style.marginLeft = width + 'px';
-    };
-    document.onmouseup = function () {
-      document.onmousemove = null;
-      document.onmouseup = null;
-    };
+    const move = e => resize(e.clientX);
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', () => {
+      document.removeEventListener('mousemove', move);
+    }, { once: true });
   });
+
+  handle.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const move = e => resize(e.touches[0].clientX);
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('touchend', () => {
+      document.removeEventListener('touchmove', move);
+    }, { once: true });
+  }, { passive: false });
 })();
