@@ -107,6 +107,13 @@ body, html {
 #highlight-btn {
   background: #fbc02d;
   color: #000;
+  font-weight: normal;
+  transition: all 0.2s ease;
+}
+
+#highlight-btn.active {
+  background: #ffd700;
+  font-weight: bold;
 }
 
 #last-updated {
