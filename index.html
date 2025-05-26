@@ -36,6 +36,17 @@
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="main.js"></script>
+  <script>
+    fetch("https://freshboxmarket.github.io/maplayers/_zones.geojson")
+      .then(res => res.json())
+      .then(data => {
+        const bounds = L.geoJSON(data).getBounds();
+        const center = bounds.getCenter();
+        const script = document.createElement('script');
+        script.src = "main.js";
+        script.dataset.center = JSON.stringify([center.lat, center.lng]);
+        document.body.appendChild(script);
+      });
+  </script>
 </body>
 </html>
