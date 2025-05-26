@@ -39,7 +39,7 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
   <script>
-    fetch("https://freshboxmarket.github.io/maplayers/_zones.geojson")
+    fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
       .then(res => res.json())
       .then(data => {
         const bounds = L.geoJSON(data).getBounds();
@@ -50,7 +50,7 @@
         document.body.appendChild(script);
       })
       .catch(err => {
-        alert("Failed to load _zones.geojson");
+        alert("Failed to load zones.geojson");
         console.error(err);
       });
   </script>
