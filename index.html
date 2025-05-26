@@ -26,9 +26,8 @@
       <h3>Upcoming Deliveries</h3>
       <div id="csv-legend"></div>
       <button id="refresh-btn">🔄 Refresh</button>
-      <div id="stats-panel"></div>
       <div id="status-debug"></div>
-      <div id="last-updated">Last updated: …</div>
+      <div id="last-updated"></div>
     </div>
 
     <div id="zoom-controls"></div>
@@ -49,8 +48,9 @@
         script.src = "main.js";
         script.dataset.center = JSON.stringify([center.lat, center.lng]);
         document.body.appendChild(script);
-      }).catch(err => {
-        alert("Failed to load _zones.geojson: " + err.message);
+      })
+      .catch(err => {
+        alert("Failed to load _zones.geojson");
         console.error(err);
       });
   </script>
