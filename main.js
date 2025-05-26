@@ -1,12 +1,10 @@
-// Updated Leaflet Map Logic with improved Highlight labeling
 const center = JSON.parse(document.currentScript.dataset.center || '[43.5,-79.8]');
-const map = L.map('map', { zoomControl: false }).setView(center, 8);
+const map = L.map('map', { zoomControl: false }).setView(center, 7.5);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-const zoomControl = L.control.zoom({ position: 'bottomleft' });
-zoomControl.addTo(map);
+L.control.zoom({ position: 'bottomleft' }).addTo(map);
 document.getElementById('zoom-controls').appendChild(document.querySelector('.leaflet-control-zoom'));
 
 document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
@@ -62,8 +60,6 @@ const csvSources = {
 
 const csvLegend = document.getElementById('csv-legend');
 const deliveryLayers = {};
-let labelLayers = L.layerGroup().addTo(map);
-let highlightActive = false;
 
 function createCustomMarker(color, number) {
   return L.divIcon({
@@ -101,7 +97,6 @@ function loadCSVs() {
     toggle.checked = src.defaultVisible;
     toggle.addEventListener('change', () => {
       toggle.checked ? map.addLayer(group) : map.removeLayer(group);
-      if (highlightActive) clearHighlight();
     });
 
     row.appendChild(span);
@@ -126,14 +121,13 @@ function loadCSVs() {
           }
         });
         span.textContent = `${label} – ${count} deliveries`;
+        debug(`✅ ${label} loaded (${count})`);
       }
     });
   });
 }
 
-loadCSVs();
-
-document.getElementById('refresh-btn').addEventListener('click', () => {
+function refreshLayers() {
   const btn = document.getElementById('refresh-btn');
   btn.style.fontWeight = 'bold';
   setTimeout(() => { btn.style.fontWeight = 'normal'; }, 7000);
@@ -146,107 +140,62 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
   msg.style.padding = '6px';
   msg.style.marginTop = '8px';
   msg.style.borderRadius = '4px';
+  document.getElementById('status-debug').innerHTML = '';
   document.getElementById('status-debug').appendChild(msg);
   setTimeout(() => msg.remove(), 4000);
 
-  document.getElementById('status-debug').innerHTML = '';
   Object.values(deliveryLayers).forEach(group => group.clearLayers());
-  labelLayers.clearLayers();
   loadCSVs();
-});
-
-function clearHighlight() {
-  labelLayers.clearLayers();
-  highlightActive = false;
-  document.getElementById('highlight-btn').classList.remove('active');
 }
 
-document.getElementById('highlight-btn').addEventListener('click', () => {
-  if (highlightActive) return clearHighlight();
+function countFundraisers() {
+  const counts = {};
+  Object.entries(deliveryLayers).forEach(([label, group]) => {
+    if (map.hasLayer(group)) {
+      group.eachLayer(marker => {
+        const content = marker.getPopup()?.getContent();
+        const name = content?.match(/<strong>(.*?)<\\/strong>/)?.[1] || 'Unknown';
+        counts[name] = (counts[name] || 0) + 1;
+      });
+    }
+  });
 
-  const active = Object.entries(deliveryLayers).filter(([_, group]) => map.hasLayer(group));
-  if (active.length !== 1) {
-    const msg = document.createElement('div');
-    msg.textContent = 'Please toggle only ONE layer to highlight.';
-    msg.style.background = '#fff3cd';
-    msg.style.color = '#856404';
-    msg.style.border = '1px solid #ffeeba';
-    msg.style.padding = '6px';
-    msg.style.marginTop = '8px';
-    msg.style.borderRadius = '4px';
-    document.getElementById('status-debug').appendChild(msg);
-    setTimeout(() => msg.remove(), 4000);
-    return;
+  const panel = document.getElementById('status-debug');
+  panel.innerHTML = '';
+  if (Object.keys(counts).length === 0) {
+    panel.textContent = 'No layers selected.';
+  } else {
+    Object.entries(counts).forEach(([name, count]) => {
+      const div = document.createElement('div');
+      div.textContent = `${name}: ${count}`;
+      panel.appendChild(div);
+    });
   }
+}
 
-  const [label] = active;
-  const { url, color } = csvSources[label];
-  highlightActive = true;
-  document.getElementById('highlight-btn').classList.add('active');
-
-  Papa.parse(url, {
-    download: true,
-    header: true,
-    complete: results => {
-      let count = 0;
-      results.data.forEach(r => {
-        const lat = parseFloat(r.lat);
-        const lng = parseFloat(r.long);
-        const id = r.id || '';
-        const name = r.FundraiserName || 'Unknown';
-        if (!isNaN(lat) && !isNaN(lng)) {
-          count++;
-          const div = L.divIcon({
-            className: 'label-icon',
-            html: `<div style="
-              font-family: Oswald, sans-serif;
-              font-weight: bold;
-              font-size: 16px;
-              color: black;
-              padding: 4px 8px;
-              border: 2px solid ${color};
-              border-radius: 6px;
-              background: white;">
-              ${name} (${id})
-            </div>`
-          });
-          const marker = L.marker([lat, lng], { icon: div });
-          labelLayers.addLayer(marker);
-        }
-      });
-      if (count > 0) {
-        map.addLayer(labelLayers);
-        debug(`✅ Highlighted ${count} points from ${label}`);
-      } else {
-        debug(`⚠ No valid points found in ${label}`);
-      }
-    },
-    error: err => {
-      debug(`❌ Highlight failed: ${err.message}`);
-    }
-  });
-});
-          L.marker([lat, lng], { icon: div }).addTo(labelLayers);
-        }
-      });
-      debug(`✅ Highlighted ${count} points from ${label}`);
-    }
-  });
-    }
-  });
+// Start
+loadCSVs();
+document.getElementById('refresh-btn').addEventListener('click', refreshLayers);
+document.getElementById('count-btn').addEventListener('click', countFundraisers);
+document.getElementById('toggle-btn').addEventListener('click', () => {
+  const sidebar = document.getElementById('sidebar');
+  const mapDiv = document.getElementById('map');
+  const collapsed = sidebar.offsetWidth <= 50;
+  const newWidth = collapsed ? 250 : 40;
+  sidebar.style.width = newWidth + 'px';
+  mapDiv.style.marginLeft = newWidth + 'px';
+  document.getElementById('toggle-btn').textContent = collapsed ? '⬅' : '➡';
 });
 
 (function enableResize() {
   const sidebar = document.getElementById('sidebar');
   const handle = document.getElementById('resize-handle');
   const mapDiv = document.getElementById('map');
-
   const resize = (x) => {
-    const newWidth = Math.max(100, x);
+    const newWidth = Math.max(40, x);
     sidebar.style.width = newWidth + 'px';
     mapDiv.style.marginLeft = newWidth + 'px';
   };
-
   handle.addEventListener('mousedown', e => {
     e.preventDefault();
     const move = e => resize(e.clientX);
@@ -255,7 +204,6 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
       document.removeEventListener('mousemove', move);
     }, { once: true });
   });
-
   handle.addEventListener('touchstart', e => {
     e.preventDefault();
     const move = e => resize(e.touches[0].clientX);
