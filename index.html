@@ -27,6 +27,7 @@
       <div id="csv-legend"></div>
       <button id="refresh-btn">🔄 Refresh</button>
       <div id="stats-panel"></div>
+      <div id="status-debug"></div>
       <div id="last-updated">Last updated: …</div>
     </div>
 
@@ -48,6 +49,9 @@
         script.src = "main.js";
         script.dataset.center = JSON.stringify([center.lat, center.lng]);
         document.body.appendChild(script);
+      }).catch(err => {
+        alert("Failed to load _zones.geojson: " + err.message);
+        console.error(err);
       });
   </script>
 </body>
