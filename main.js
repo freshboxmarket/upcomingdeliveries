@@ -1,15 +1,12 @@
-// Extract center coordinates passed from index.html
 const center = JSON.parse(document.currentScript.dataset.center || '[43.5,-79.8]');
-const map = L.map('map', { zoomControl: false }).setView(center, 11);
-
+const map = L.map('map', { zoomControl: false }).setView(center, 10); // Slightly zoomed out
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
 const zoomControl = L.control.zoom({ position: 'bottomleft' });
 zoomControl.addTo(map);
-const zoomEl = document.querySelector('.leaflet-control-zoom');
-document.getElementById('zoom-controls').appendChild(zoomEl);
+document.getElementById('zoom-controls').appendChild(document.querySelector('.leaflet-control-zoom'));
 
 document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
 
@@ -84,8 +81,8 @@ function createCustomMarker(color, number) {
 }
 
 function loadCSVs() {
-  csvLegend.innerHTML = ''; // Clear previous toggles on refresh
-  for (const [label, src] of Object.entries(csvSources)) {
+  csvLegend.innerHTML = '';
+  Object.entries(csvSources).forEach(([label, src]) => {
     const group = L.layerGroup();
     deliveryLayers[label] = group;
     if (src.defaultVisible) map.addLayer(group);
@@ -130,16 +127,29 @@ function loadCSVs() {
         span.textContent = `${label} – ${count} deliveries`;
       }
     });
-  }
+  });
 }
 
 loadCSVs();
 
 document.getElementById('refresh-btn').addEventListener('click', () => {
+  const btn = document.getElementById('refresh-btn');
+  btn.style.fontWeight = 'bold';
+  setTimeout(() => { btn.style.fontWeight = 'normal'; }, 4000);
+
+  const msg = document.createElement('div');
+  msg.textContent = '✅ Data refreshed';
+  msg.style.background = '#d4edda';
+  msg.style.border = '1px solid #c3e6cb';
+  msg.style.color = '#155724';
+  msg.style.padding = '6px';
+  msg.style.marginTop = '8px';
+  msg.style.borderRadius = '4px';
+  document.getElementById('status-debug').appendChild(msg);
+  setTimeout(() => msg.remove(), 4000);
+
   document.getElementById('status-debug').innerHTML = '';
-  for (const group of Object.values(deliveryLayers)) {
-    group.clearLayers();
-  }
+  Object.values(deliveryLayers).forEach(group => group.clearLayers());
   loadCSVs();
 });
 
@@ -147,15 +157,11 @@ function clearHighlight() {
   labelPopups.forEach(p => map.removeLayer(p));
   labelPopups.length = 0;
   highlightActive = false;
-  document.getElementById('highlight-btn').style.background = '#fbc02d';
-  document.getElementById('highlight-btn').style.fontWeight = 'normal';
+  document.getElementById('highlight-btn').classList.remove('active');
 }
 
 document.getElementById('highlight-btn').addEventListener('click', () => {
-  if (highlightActive) {
-    clearHighlight();
-    return;
-  }
+  if (highlightActive) return clearHighlight();
 
   const active = Object.entries(deliveryLayers).filter(([_, group]) => map.hasLayer(group));
   if (active.length !== 1) {
@@ -175,9 +181,7 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
   const [label] = active;
   const { url } = csvSources[label];
   highlightActive = true;
-  const btn = document.getElementById('highlight-btn');
-  btn.style.background = '#ffd700';
-  btn.style.fontWeight = 'bold';
+  document.getElementById('highlight-btn').classList.add('active');
 
   Papa.parse(url, {
     download: true,
