@@ -3,15 +3,47 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-fetch("https://freshboxmarket.github.io/maplayers/zones.geojson")
-  .then(res => res.json())
-  .then(data => {
-    const zonesLayer = L.geoJSON(data, {
-      style: { color: "#444", weight: 1, fillOpacity: 0.05 }
-    }).addTo(map);
-    map.fitBounds(zonesLayer.getBounds());
+const now = new Date();
+document.getElementById('last-updated').textContent =
+  `Last updated: ${now.toLocaleDateString()} @ ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+const uniqueIDs = new Set();
+const stats = {
+  "3 Weeks Out": { Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 },
+  "2 Weeks Out": { Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 },
+  "1 Week Out": { Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 }
+};
+
+const updateStatsDisplay = () => {
+  const container = document.getElementById('stats-container');
+  container.innerHTML = '';
+
+  Object.entries(stats).forEach(([week, data]) => {
+    const div = document.createElement('div');
+    div.className = 'stats-entry';
+    div.innerHTML = `
+      <strong>${week}</strong>
+      <span>Wed: ${data.Wednesday}</span>
+      <span>Thu: ${data.Thursday}</span>
+      <span>Fri: ${data.Friday}</span>
+      <span>Sat: ${data.Saturday}</span>
+    `;
+    container.appendChild(div);
   });
 
+  const totals = { Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  Object.values(stats).forEach(d => {
+    for (const k in d) totals[k] += d[k];
+  });
+
+  const busiest = Object.entries(totals).reduce((a, b) => b[1] > a[1] ? b : a)[0];
+  const summary = document.createElement('div');
+  summary.className = 'stats-entry';
+  summary.innerHTML = `<strong>Busiest Day:</strong> ${busiest}`;
+  container.appendChild(summary);
+};
+
+const zonePolygons = {};
 const geoLayers = {
   "Wednesday": { url: "https://freshboxmarket.github.io/maplayers/wed_group.geojson", color: "#008000" },
   "Thursday":  { url: "https://freshboxmarket.github.io/maplayers/thurs_group.geojson", color: "#FF0000" },
@@ -19,77 +51,26 @@ const geoLayers = {
   "Saturday":  { url: "https://freshboxmarket.github.io/maplayers/sat_group.geojson", color: "#FFD700" }
 };
 
-Object.entries(geoLayers).forEach(([name, { url, color }]) => {
+Object.entries(geoLayers).forEach(([day, { url, color }]) => {
   fetch(url)
     .then(res => res.json())
     .then(data => {
+      zonePolygons[day] = data.features;
       L.geoJSON(data, {
         style: { color, weight: 2, fillOpacity: 0.15 },
-        onEachFeature: (feature, layer) => layer.bindPopup(`${name} Zone`)
+        onEachFeature: (f, l) => l.bindPopup(`${day} Zone`)
       }).addTo(map);
     });
 });
 
 const csvSources = {
-  "3 Weeks Out": {
-    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
-    color: "#800080"
-  },
-  "2 Weeks Out": {
-    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkTCHp6iaWJBboax7x-Ic8kmX6jlYkTzJhnCnv2WfPtmo70hXPijk0p1JI03vBQTPuyPuDVWzxbavP/pub?output=csv",
-    color: "#002366"
-  },
-  "1 Week Out": {
-    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ1kJEo0ZljAhlg4Lnr_Shz3-OJnV6uehE8vCA8280L4aCfNoWE85WEJnOG2jzL2jE-o0PWTMRZiFu/pub?output=csv",
-    color: "#e75480"
-  }
+  "3 Weeks Out": { url: "https://...", color: "#800080" },
+  "2 Weeks Out": { url: "https://...", color: "#002366" },
+  "1 Week Out": { url: "https://...", color: "#e75480" }
 };
 
 const csvLegend = document.getElementById('csv-legend');
 const totalUnique = document.getElementById('total-unique');
-const lastUpdated = document.getElementById('last-updated');
-const statsContainer = document.getElementById('stats-container');
-
-const now = new Date();
-lastUpdated.textContent = `Last updated: ${now.toLocaleDateString()} @ ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
-const uniqueIDs = new Set();
-const stats = {
-  "3 Weeks Out": { total: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 },
-  "2 Weeks Out": { total: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 },
-  "1 Week Out": { total: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 }
-};
-
-const updateStatsDisplay = () => {
-  statsContainer.innerHTML = '';
-  Object.entries(stats).forEach(([week, data]) => {
-    const div = document.createElement('div');
-    div.className = 'stats-entry';
-    div.innerHTML = `
-      <strong>${week}</strong>
-      <span>Total: ${data.total}</span>
-      <span>Wed: ${data.Wednesday}</span>
-      <span>Thu: ${data.Thursday}</span>
-      <span>Fri: ${data.Friday}</span>
-      <span>Sat: ${data.Saturday}</span>
-    `;
-    statsContainer.appendChild(div);
-  });
-
-  const dayTotals = { Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
-  Object.values(stats).forEach(data => {
-    ["Wednesday", "Thursday", "Friday", "Saturday"].forEach(day => {
-      dayTotals[day] += data[day];
-    });
-  });
-
-  const busiestDay = Object.entries(dayTotals).reduce((a, b) => b[1] > a[1] ? b : a)[0];
-
-  const summary = document.createElement('div');
-  summary.className = 'stats-entry';
-  summary.innerHTML = `<strong>Busiest Day:</strong> ${busiestDay}`;
-  statsContainer.appendChild(summary);
-};
 
 Object.entries(csvSources).forEach(([name, { url, color }]) => {
   const groupLayer = L.layerGroup().addTo(map);
@@ -126,32 +107,36 @@ Object.entries(csvSources).forEach(([name, { url, color }]) => {
     header: true,
     complete: function(results) {
       let count = 0;
-
       results.data.forEach(row => {
         const lat = parseFloat(row.lat);
         const lon = parseFloat(row.long);
         const id = (row["id:"] || "").trim();
         const fundraiser = row.FundraiserName || "Unknown";
-        const day = (row.DeliveryDay || "").trim();
 
         if (!isNaN(lat) && !isNaN(lon)) {
           count++;
           if (id) uniqueIDs.add(id);
-          if (stats[name] && stats[name][day] !== undefined) stats[name][day]++;
-          stats[name].total++;
+
+          const pt = turf.point([lon, lat]);
+          for (const day in zonePolygons) {
+            for (const poly of zonePolygons[day] || []) {
+              if (turf.booleanPointInPolygon(pt, poly)) {
+                stats[name][day]++;
+                break;
+              }
+            }
+          }
 
           L.circleMarker([lat, lon], {
             radius: 10,
-            color: color,
+            color,
             weight: 3,
             fillColor: "#ffffff",
             fillOpacity: 1
           }).bindPopup(`<strong>${fundraiser}</strong><br>ID: ${id}`).addTo(groupLayer);
 
-          const buffered = turf.buffer(turf.point([lon, lat]), 0.05, { units: 'kilometers' });
-          L.geoJSON(buffered, {
-            style: { color, weight: 1, fillOpacity: 0.2 }
-          }).addTo(bufferLayer);
+          const buffered = turf.buffer(pt, 0.05, { units: 'kilometers' });
+          L.geoJSON(buffered, { style: { color, weight: 1, fillOpacity: 0.2 } }).addTo(bufferLayer);
         }
       });
 
