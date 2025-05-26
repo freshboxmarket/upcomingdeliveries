@@ -188,12 +188,14 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
     download: true,
     header: true,
     complete: results => {
+      let count = 0;
       results.data.forEach(r => {
         const lat = parseFloat(r.lat);
         const lng = parseFloat(r.long);
         const id = r.id || '';
         const name = r.FundraiserName || 'Unknown';
         if (!isNaN(lat) && !isNaN(lng)) {
+          count++;
           const div = L.divIcon({
             className: 'label-icon',
             html: `<div style="
@@ -211,6 +213,9 @@ document.getElementById('highlight-btn').addEventListener('click', () => {
           L.marker([lat, lng], { icon: div }).addTo(labelLayers);
         }
       });
+      debug(`✅ Highlighted ${count} points from ${label}`);
+    }
+  });
     }
   });
 });
