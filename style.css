@@ -27,8 +27,9 @@ body, html {
   right: -10px;
   width: 20px;
   height: 100%;
-  cursor: ew-resize;
   background: rgba(0, 128, 0, 0.3);
+  cursor: ew-resize;
+  touch-action: none;
   z-index: 1001;
 }
 
