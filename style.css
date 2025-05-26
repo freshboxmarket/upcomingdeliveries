@@ -25,14 +25,23 @@ body, html {
 }
 
 #resize-handle {
-  width: 8px;
+  width: 12px;
   height: 100%;
   position: absolute;
   top: 0;
   right: 0;
   cursor: ew-resize;
-  background: #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 1001;
+}
+
+#grabber {
+  width: 6px;
+  height: 60px;
+  background: #888;
+  border-radius: 3px;
 }
 
 #map {
@@ -115,33 +124,13 @@ body, html {
   color: #555;
 }
 
-#stats-container {
-  margin-top: 12px;
-  font-size: 12px;
-  color: #333;
+#zoom-controls {
+  margin-top: auto;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  padding: 10px;
 }
 
-.stats-entry {
-  background: #ffffff;
-  border: 1px solid #ccc;
-  border-left: 5px solid #4caf50;
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.stats-entry strong {
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.stats-loading {
-  font-style: italic;
-  color: #888;
+.leaflet-control-zoom {
+  position: static;
 }
