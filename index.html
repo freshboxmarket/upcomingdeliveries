@@ -9,37 +9,36 @@
 </head>
 <body>
   <div id="sidebar">
-    <div id="resize-handle"></div>
-    <div id="logo-container">
-      <img src="https://freshboxmarket.github.io/maplayers/Logo_fbm.jpg" alt="FBM Logo" id="fbm-logo">
+    <img id="logo" src="https://freshboxmarket.github.io/maplayers/Logo_fbm.jpg" alt="Logo" />
+    <h3>Layers</h3>
+    <div class="legend-entry">
+      <input type="checkbox" id="layer1" checked />
+      <span class="legend-color" id="color1"></span>
+      1 Week Out
     </div>
-    <button id="toggle-btn">⬅</button>
-
-    <div id="legend">
-      <h3>Delivery Zones</h3>
-      <div class="legend-row">
-        <div class="legend-item"><span class="color-swatch" style="background-color:#008000;"></span>Wednesday</div>
-        <div class="legend-item"><span class="color-swatch" style="background-color:#FF0000;"></span>Thursday</div>
-        <div class="legend-item"><span class="color-swatch" style="background-color:#0000FF;"></span>Friday</div>
-        <div class="legend-item"><span class="color-swatch" style="background-color:#FFD700;"></span>Saturday</div>
-      </div>
-
-      <h3>Upcoming Deliveries</h3>
-      <div id="csv-legend"></div>
-      <button id="refresh-btn">🔄 Refresh</button>
-      <button id="count-btn">📊 Count</button>
-      <div id="status-debug"></div>
-      <div id="last-updated"></div>
+    <div class="legend-entry">
+      <input type="checkbox" id="layer2" />
+      <span class="legend-color" id="color2"></span>
+      2 Weeks Out
+    </div>
+    <div class="legend-entry">
+      <input type="checkbox" id="layer3" />
+      <span class="legend-color" id="color3"></span>
+      3 Weeks Out
     </div>
 
-    <div id="zoom-controls"></div>
+    <div id="layer-counts">
+      <h4>Totals</h4>
+      <p id="count1">1 Week Out: 0</p>
+      <p id="count2">2 Weeks Out: 0</p>
+      <p id="count3">3 Weeks Out: 0</p>
+    </div>
   </div>
 
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="main.js" defer></script>
+  <script src="main.js"></script>
 </body>
 </html>
