@@ -10,9 +10,10 @@ const layers = [
     name: "1 Week Out",
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ1kJEo0ZljAhlg4Lnr_Shz3-OJnV6uehE8vCA8280L4aCfNoWE85WEJnOG2jzL2jE-o0PWTMRZiFu/pub?output=csv",
     color: getRandomColor(),
-    group: L.layerGroup().addTo(map),
+    group: L.layerGroup(),
     checkboxId: "layer1",
-    countId: "count1"
+    countId: "count1",
+    defaultVisible: true
   },
   {
     name: "2 Weeks Out",
@@ -20,7 +21,8 @@ const layers = [
     color: getRandomColor(),
     group: L.layerGroup(),
     checkboxId: "layer2",
-    countId: "count2"
+    countId: "count2",
+    defaultVisible: false
   },
   {
     name: "3 Weeks Out",
@@ -28,21 +30,20 @@ const layers = [
     color: getRandomColor(),
     group: L.layerGroup(),
     checkboxId: "layer3",
-    countId: "count3"
+    countId: "count3",
+    defaultVisible: false
   }
 ];
 
-// Apply layer colors to the legend
 layers.forEach((layer, idx) => {
   document.getElementById(`color${idx + 1}`).style.backgroundColor = layer.color;
-});
 
-function getRandomColor() {
-  const colors = ['#ff6f61', '#42a5f5', '#ab47bc', '#26a69a', '#ef5350', '#fdd835', '#7e57c2', '#66bb6a'];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
+  // Add to map only if default visible
+  if (layer.defaultVisible) {
+    layer.group.addTo(map);
+  }
 
-function loadCsvLayer(layer) {
+  // Load the CSV and populate the group regardless of toggle state
   Papa.parse(layer.url, {
     download: true,
     header: true,
@@ -73,12 +74,8 @@ function loadCsvLayer(layer) {
       document.getElementById(layer.countId).textContent = `${layer.name}: ${count}`;
     }
   });
-}
 
-// Load and set up toggle functionality
-layers.forEach(layer => {
-  loadCsvLayer(layer);
-
+  // Handle toggling
   const checkbox = document.getElementById(layer.checkboxId);
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
@@ -88,3 +85,8 @@ layers.forEach(layer => {
     }
   });
 });
+
+function getRandomColor() {
+  const colors = ['#ff6f61', '#42a5f5', '#ab47bc', '#26a69a', '#ef5350', '#fdd835', '#7e57c2', '#66bb6a'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
