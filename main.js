@@ -35,18 +35,17 @@ const layers = [
   }
 ];
 
+// Assign colors to legend
 layers.forEach((layer, idx) => {
   document.getElementById(`color${idx + 1}`).style.backgroundColor = layer.color;
+});
 
-  // Add to map only if default visible
-  if (layer.defaultVisible) {
-    layer.group.addTo(map);
-  }
-
-  // Load the CSV and populate the group regardless of toggle state
+// Load all layers regardless of toggle state
+layers.forEach(layer => {
   Papa.parse(layer.url, {
     download: true,
     header: true,
+    skipEmptyLines: true, // 🔧 Prevents trailing rows from interfering
     complete: function(results) {
       const data = results.data;
       let count = 0;
@@ -57,7 +56,7 @@ layers.forEach((layer, idx) => {
         const name = row.FundraiserName?.trim();
         const id = row.id?.trim();
 
-        if (!isNaN(lat) && !isNaN(lon) && name && id) {
+        if (isFinite(lat) && isFinite(lon) && name && id) {
           const marker = L.circleMarker([lat, lon], {
             radius: 7,
             fillColor: layer.color,
@@ -72,10 +71,16 @@ layers.forEach((layer, idx) => {
       });
 
       document.getElementById(layer.countId).textContent = `${layer.name}: ${count}`;
+
+      // Add to map only if default visible
+      if (layer.defaultVisible) {
+        map.addLayer(layer.group);
+        document.getElementById(layer.checkboxId).checked = true;
+      }
     }
   });
 
-  // Handle toggling
+  // Toggle listener
   const checkbox = document.getElementById(layer.checkboxId);
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
