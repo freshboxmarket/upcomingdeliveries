@@ -4,12 +4,14 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Layer configs
+// Predefined distinct colors
+const colorPalette = ['#ff6f61', '#1e88e5', '#8e24aa'];
+
 const layers = [
   {
     name: "1 Week Out",
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZ1kJEo0ZljAhlg4Lnr_Shz3-OJnV6uehE8vCA8280L4aCfNoWE85WEJnOG2jzL2jE-o0PWTMRZiFu/pub?output=csv",
-    color: getRandomColor(),
+    color: colorPalette[0],
     group: L.layerGroup(),
     checkboxId: "layer1",
     countId: "count1",
@@ -18,34 +20,34 @@ const layers = [
   {
     name: "2 Weeks Out",
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkTCHp6iaWJBboax7x-Ic8kmX6jlYkTzJhnCnv2WfPtmo70hXPijk0p1JI03vBQTPuyPuDVWzxbavP/pub?output=csv",
-    color: getRandomColor(),
+    color: colorPalette[1],
     group: L.layerGroup(),
     checkboxId: "layer2",
     countId: "count2",
-    defaultVisible: false
+    defaultVisible: true
   },
   {
     name: "3 Weeks Out",
     url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2LfOVQyErcTtEMSwS1ch4GfUlcpXnNfih841L1Vms0B-9pNMSh9vW5k0TNrXDoQgv2-lgDnYWdzgM/pub?output=csv",
-    color: getRandomColor(),
+    color: colorPalette[2],
     group: L.layerGroup(),
     checkboxId: "layer3",
     countId: "count3",
-    defaultVisible: false
+    defaultVisible: true
   }
 ];
 
-// Assign colors to legend
+// Assign colors visually
 layers.forEach((layer, idx) => {
   document.getElementById(`color${idx + 1}`).style.backgroundColor = layer.color;
 });
 
-// Load all layers regardless of toggle state
+// Load all layers and their data
 layers.forEach(layer => {
   Papa.parse(layer.url, {
     download: true,
     header: true,
-    skipEmptyLines: true, // 🔧 Prevents trailing rows from interfering
+    skipEmptyLines: true,
     complete: function(results) {
       const data = results.data;
       let count = 0;
@@ -72,7 +74,6 @@ layers.forEach(layer => {
 
       document.getElementById(layer.countId).textContent = `${layer.name}: ${count}`;
 
-      // Add to map only if default visible
       if (layer.defaultVisible) {
         map.addLayer(layer.group);
         document.getElementById(layer.checkboxId).checked = true;
@@ -80,7 +81,6 @@ layers.forEach(layer => {
     }
   });
 
-  // Toggle listener
   const checkbox = document.getElementById(layer.checkboxId);
   checkbox.addEventListener('change', () => {
     if (checkbox.checked) {
@@ -90,8 +90,3 @@ layers.forEach(layer => {
     }
   });
 });
-
-function getRandomColor() {
-  const colors = ['#ff6f61', '#42a5f5', '#ab47bc', '#26a69a', '#ef5350', '#fdd835', '#7e57c2', '#66bb6a'];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
