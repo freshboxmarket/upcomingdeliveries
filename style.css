@@ -28,44 +28,38 @@ body, html {
   margin-bottom: 20px;
 }
 
-.legend-entry {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
 .legend-color {
+  display: inline-block;
   width: 14px;
   height: 14px;
-  margin: 0 8px;
+  margin-right: 6px;
   border-radius: 50%;
-  display: inline-block;
 }
 
-#layer-counts {
-  margin-top: 20px;
+h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+#layer-toggles label {
+  display: block;
+  margin-bottom: 4px;
   font-size: 14px;
 }
 
-#layer-counts p {
-  margin: 6px 0 2px;
-  font-weight: bold;
+#event-counts {
+  list-style: none;
+  padding-left: 0;
+  font-size: 14px;
 }
 
-#layer-counts div {
-  margin-bottom: 12px;
-  font-size: 13px;
+#event-counts li {
+  margin-bottom: 4px;
 }
 
-#refresh {
-  margin-top: 12px;
-  padding: 6px 12px;
-  background-color: #ffffff;
-  color: #2e7d32;
-  border: none;
-  cursor: pointer;
-  width: 100%;
+#total-count {
+  margin-top: 10px;
   font-weight: bold;
-  border-radius: 4px;
+  font-size: 14px;
 }
