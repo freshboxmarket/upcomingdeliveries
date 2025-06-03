@@ -4,7 +4,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Predefined distinct colors
 const colorPalette = ['#ff6f61', '#1e88e5', '#8e24aa'];
 
 const layers = [
@@ -15,7 +14,7 @@ const layers = [
     group: L.layerGroup(),
     checkboxId: "layer1",
     countId: "count1",
-    defaultVisible: true
+    eventId: "events1"
   },
   {
     name: "2 Weeks Out",
@@ -24,7 +23,7 @@ const layers = [
     group: L.layerGroup(),
     checkboxId: "layer2",
     countId: "count2",
-    defaultVisible: true
+    eventId: "events2"
   },
   {
     name: "3 Weeks Out",
@@ -33,17 +32,20 @@ const layers = [
     group: L.layerGroup(),
     checkboxId: "layer3",
     countId: "count3",
-    defaultVisible: true
+    eventId: "events3"
   }
 ];
 
-// Assign colors visually
+// Color dots in sidebar
 layers.forEach((layer, idx) => {
   document.getElementById(`color${idx + 1}`).style.backgroundColor = layer.color;
 });
 
-// Load CSV and render markers
-layers.forEach(layer => {
+function loadLayerData(layer) {
+  // Clear old markers
+  layer.group.clearLayers();
+  const uniqueEvents = {};
+
   Papa.parse(layer.url, {
     download: true,
     header: true,
@@ -55,27 +57,38 @@ layers.forEach(layer => {
       data.forEach(row => {
         const lat = parseFloat(row.lat || row.Lat || row.latitude);
         const lon = parseFloat(row.long || row.Long || row.longitude);
-        const name = row.FundraiserName || row.fundraisername || row.name || "";
-        const id = row.id || row.ID || "";
+        const name = (row.FundraiserName || row.fundraisername || row.name || "").trim();
+        const id = (row.id || row.ID || "").trim();
 
-        if (isFinite(lat) && isFinite(lon) && name.trim() && id.trim()) {
-          const marker = L.circleMarker([lat, lon], {
+        if (isFinite(lat) && isFinite(lon) && name && id) {
+          L.circleMarker([lat, lon], {
             radius: 7,
             fillColor: layer.color,
             color: "#333",
             weight: 1,
             opacity: 1,
             fillOpacity: 0.85
-          }).bindPopup(`<strong>${name.trim()}</strong><br>ID: ${id.trim()}`);
-          marker.addTo(layer.group);
+          }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`).addTo(layer.group);
           count++;
+          uniqueEvents[name] = (uniqueEvents[name] || 0) + 1;
         }
       });
 
       document.getElementById(layer.countId).textContent = `${layer.name}: ${count}`;
-      if (layer.defaultVisible) {
+      const eventDiv = document.getElementById(layer.eventId);
+      eventDiv.innerHTML = "";
+
+      // Sort and list events
+      Object.entries(uniqueEvents)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([eventName, eventCount]) => {
+          const div = document.createElement("div");
+          div.textContent = `${eventName}: ${eventCount}`;
+          eventDiv.appendChild(div);
+        });
+
+      if (document.getElementById(layer.checkboxId).checked) {
         map.addLayer(layer.group);
-        document.getElementById(layer.checkboxId).checked = true;
       }
     },
     error: function(err) {
@@ -83,13 +96,26 @@ layers.forEach(layer => {
       document.getElementById(layer.countId).textContent = `${layer.name}: Error`;
     }
   });
+}
 
-  const checkbox = document.getElementById(layer.checkboxId);
-  checkbox.addEventListener('change', () => {
-    if (checkbox.checked) {
-      map.addLayer(layer.group);
-    } else {
-      map.removeLayer(layer.group);
-    }
+function initLayers() {
+  layers.forEach(layer => {
+    loadLayerData(layer);
+    const checkbox = document.getElementById(layer.checkboxId);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        map.addLayer(layer.group);
+      } else {
+        map.removeLayer(layer.group);
+      }
+    });
   });
+}
+
+// Initial load
+initLayers();
+
+// Refresh button
+document.getElementById("refresh").addEventListener("click", () => {
+  layers.forEach(layer => loadLayerData(layer));
 });
