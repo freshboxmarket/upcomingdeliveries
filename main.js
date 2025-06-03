@@ -42,7 +42,7 @@ layers.forEach((layer, idx) => {
   document.getElementById(`color${idx + 1}`).style.backgroundColor = layer.color;
 });
 
-// Load all layers and their data
+// Load CSV and render markers
 layers.forEach(layer => {
   Papa.parse(layer.url, {
     download: true,
@@ -53,31 +53,34 @@ layers.forEach(layer => {
       let count = 0;
 
       data.forEach(row => {
-        const lat = parseFloat(row.lat);
-        const lon = parseFloat(row.long);
-        const name = row.FundraiserName?.trim();
-        const id = row.id?.trim();
+        const lat = parseFloat(row.lat || row.Lat || row.latitude);
+        const lon = parseFloat(row.long || row.Long || row.longitude);
+        const name = row.FundraiserName || row.fundraisername || row.name || "";
+        const id = row.id || row.ID || "";
 
-        if (isFinite(lat) && isFinite(lon) && name && id) {
+        if (isFinite(lat) && isFinite(lon) && name.trim() && id.trim()) {
           const marker = L.circleMarker([lat, lon], {
             radius: 7,
             fillColor: layer.color,
             color: "#333",
             weight: 1,
             opacity: 1,
-            fillOpacity: 0.8
-          }).bindPopup(`<strong>${name}</strong><br>ID: ${id}`);
+            fillOpacity: 0.85
+          }).bindPopup(`<strong>${name.trim()}</strong><br>ID: ${id.trim()}`);
           marker.addTo(layer.group);
           count++;
         }
       });
 
       document.getElementById(layer.countId).textContent = `${layer.name}: ${count}`;
-
       if (layer.defaultVisible) {
         map.addLayer(layer.group);
         document.getElementById(layer.checkboxId).checked = true;
       }
+    },
+    error: function(err) {
+      console.error(`❌ Error loading ${layer.name}:`, err);
+      document.getElementById(layer.countId).textContent = `${layer.name}: Error`;
     }
   });
 
