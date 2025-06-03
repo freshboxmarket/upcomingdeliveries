@@ -11,33 +11,10 @@
   <div id="sidebar">
     <img id="logo" src="https://freshboxmarket.github.io/maplayers/Logo_fbm.jpg" alt="Logo" />
     <h3>Layers</h3>
-    <div class="legend-entry">
-      <input type="checkbox" id="layer1" checked />
-      <span class="legend-color" id="color1"></span>
-      1 Week Out
-    </div>
-    <div class="legend-entry">
-      <input type="checkbox" id="layer2" checked />
-      <span class="legend-color" id="color2"></span>
-      2 Weeks Out
-    </div>
-    <div class="legend-entry">
-      <input type="checkbox" id="layer3" checked />
-      <span class="legend-color" id="color3"></span>
-      3 Weeks Out
-    </div>
-
-    <div id="layer-counts">
-      <h4>Totals</h4>
-      <p id="count1">1 Week Out: 0</p>
-      <div id="events1"></div>
-      <p id="count2">2 Weeks Out: 0</p>
-      <div id="events2"></div>
-      <p id="count3">3 Weeks Out: 0</p>
-      <div id="events3"></div>
-    </div>
-
-    <button id="refresh">🔄 Refresh Data</button>
+    <div id="layer-toggles"></div>
+    <h3>Event Counts</h3>
+    <ul id="event-counts"></ul>
+    <p id="total-count"></p>
   </div>
 
   <div id="map"></div>
